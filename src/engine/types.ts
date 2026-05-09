@@ -37,6 +37,7 @@ export interface PlacedObject {
   storageKind: ObjectStorageKind
   geometryBuffer?: ArrayBuffer
   scaleBlocks?: number
+  bodyName?: string
 }
 
 export interface BlockDef {
@@ -110,4 +111,7 @@ export interface AppState {
   negativeMode: boolean
   hotbarSlots: string[]
   selectedSlot: number
+  showControls: boolean
+  selectedObjectId: string | null
+  objects: PlacedObject[]
 }

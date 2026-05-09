@@ -62,3 +62,15 @@ Every exported symbol is listed here. Agents must check this file before importi
   - `constructor(objects: PlacedObject[], engine: BuildEngine)`
   - `execute(): void` — pushes all objects to store, registers in occupancy, calls render.sync
   - `undo(): void` — removes all objects from store, unregisters from occupancy, calls render.sync
+
+## src/engine/commands/SetBodyNameCommand.ts
+- `SetBodyNameCommand` (class, implements `Command`)
+  - `constructor(id: number, name: string, engine: BuildEngine)`
+  - `execute(): void` — saves old name, sets new bodyName via store, calls render.sync
+  - `undo(): void` — restores old bodyName via store, calls render.sync
+
+## src/ui/components/ControlsPage.tsx
+- `ControlsPage` (component) — full-screen controls reference overlay; shown when `showControls` is true in store
+
+## src/ui/components/BodyNamePanel.tsx
+- `BodyNamePanel` (component) — bottom-right panel for naming a selected object body; visible when `selectedObjectId !== null`

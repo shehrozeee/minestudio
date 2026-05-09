@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { AppState, ToolId, BlockSize, BlockCategory, GridPos, BodyDef, ValidationWarning, SupportMode, RingType } from '../engine/types'
+import type { AppState, ToolId, BlockSize, BlockCategory, GridPos, BodyDef, ValidationWarning, SupportMode, RingType, PlacedObject } from '../engine/types'
 
 interface StoreActions {
   setTool: (tool: ToolId) => void
@@ -22,6 +22,9 @@ interface StoreActions {
   setHotbarSlot: (slot: number) => void
   setHotbarSlots: (slots: string[]) => void
   setNegativeMode: (on: boolean) => void
+  setShowControls: (v: boolean) => void
+  setSelectedObjectId: (id: string | null) => void
+  updateObjectBodyName: (id: number, name: string | undefined) => void
 }
 
 type Store = AppState & StoreActions
@@ -51,6 +54,9 @@ const initialState: AppState = {
   negativeMode: false,
   hotbarSlots: ['cube', 'slab', 'sphere', 'cylinder', 'cone', 'torus', 'wedge', 'cube', 'cube'],
   selectedSlot: 0,
+  showControls: false,
+  selectedObjectId: null,
+  objects: [],
 }
 
 export const useStore = create<Store>()((set) => ({
@@ -77,6 +83,11 @@ export const useStore = create<Store>()((set) => ({
   setHotbarSlot: (selectedSlot) => set({ selectedSlot }),
   setHotbarSlots: (hotbarSlots) => set({ hotbarSlots }),
   setNegativeMode: (negativeMode) => set({ negativeMode }),
+  setShowControls: (showControls) => set({ showControls }),
+  setSelectedObjectId: (selectedObjectId) => set({ selectedObjectId }),
+  updateObjectBodyName: (id, name) => set((state: Store) => ({
+    objects: state.objects.map((o: PlacedObject) => o.id === id ? { ...o, bodyName: name } : o),
+  })),
 }))
 
 export function resetStore(): void {

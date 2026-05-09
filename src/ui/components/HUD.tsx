@@ -1,7 +1,8 @@
 import { useStore } from '../store'
 import { getBlockDef } from '../../engine/registries/blocks'
+import type { BuildEngine } from '../../engine/BuildEngine'
 
-export function HUD() {
+export function HUD({ engine }: { engine?: BuildEngine }) {
   const pos = useStore(s => s.playerPosition)
   const tool = useStore(s => s.selectedTool)
   const size = useStore(s => s.selectedSize)
@@ -48,7 +49,15 @@ export function HUD() {
       <span><span style={{ color: '#8b8f97' }}>SHAPES </span>{count}</span>
       {fly && <span style={{ color: '#4da6ff' }}>FLY</span>}
       {negativeMode && <span style={{ color: '#ff4040' }}>NEG</span>}
-      {csg && <span style={{ color: '#ff9f40' }}>CSG⏳</span>}
+      {csg && (
+        <span
+          title="Ctrl+Shift+B"
+          onClick={() => engine && void engine.csg.bakePreview()}
+          style={{ color: '#ff9f40', cursor: engine ? 'pointer' : 'default' }}
+        >
+          CSG⏳
+        </span>
+      )}
       <span style={{ color: undo ? '#00d563' : '#3a3f47' }}>↩</span>
       <span style={{ color: redo ? '#00d563' : '#3a3f47' }}>↪</span>
     </div>
