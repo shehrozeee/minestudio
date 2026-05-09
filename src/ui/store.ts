@@ -1,0 +1,75 @@
+import { create } from 'zustand'
+import type { AppState, ToolId, BlockSize, BlockCategory, GridPos, BodyDef, ValidationWarning, SupportMode, RingType } from '../engine/types'
+
+interface StoreActions {
+  setTool: (tool: ToolId) => void
+  setSize: (size: BlockSize) => void
+  setColor: (color: string) => void
+  setFlyMode: (on: boolean) => void
+  setSupportMode: (mode: SupportMode) => void
+  setMode2D: (on: boolean) => void
+  setRingOpen: (open: boolean, type?: RingType | null) => void
+  setInventoryOpen: (open: boolean, tab?: BlockCategory) => void
+  setObjectCount: (count: number) => void
+  setUndoState: (state: { canUndo: boolean; canRedo: boolean }) => void
+  setPlayerPosition: (pos: GridPos) => void
+  setTimeOfDay: (t: number) => void
+  setBodyList: (bodies: BodyDef[]) => void
+  setValidationWarnings: (warnings: ValidationWarning[]) => void
+  setCsgPending: (pending: boolean) => void
+  setMateStep: (step: 0 | 1 | 2) => void
+  setSelectedBlockDefId: (id: string) => void
+}
+
+type Store = AppState & StoreActions
+
+const initialState: AppState = {
+  selectedTool: 'place',
+  ringOpen: false,
+  ringType: null,
+  selectedBlockDefId: 'cube',
+  selectedSize: 'normal',
+  selectedColor: '#1a1a1a',
+  inventoryOpen: false,
+  inventoryTab: 'basic',
+  objectCount: 0,
+  undoAvailable: false,
+  redoAvailable: false,
+  timeOfDay: 0.3,
+  playerPosition: { gx: 0, gy: 14, gz: 64 },
+  mateStep: 0,
+  sinkDepth: 0,
+  flyMode: false,
+  supportMode: 'off',
+  mode2D: false,
+  bodyList: [],
+  validationWarnings: [],
+  csgPending: false,
+}
+
+export const useStore = create<Store>()((set) => ({
+  ...initialState,
+  setTool: (selectedTool) => set({ selectedTool }),
+  setSize: (selectedSize) => set({ selectedSize }),
+  setColor: (selectedColor) => set({ selectedColor }),
+  setFlyMode: (flyMode) => set({ flyMode }),
+  setSupportMode: (supportMode) => set({ supportMode }),
+  setMode2D: (mode2D) => set({ mode2D }),
+  setRingOpen: (ringOpen, ringType = null) => set({ ringOpen, ringType }),
+  setInventoryOpen: (inventoryOpen, inventoryTab) =>
+    set(inventoryTab ? { inventoryOpen, inventoryTab } : { inventoryOpen }),
+  setObjectCount: (objectCount) => set({ objectCount }),
+  setUndoState: ({ canUndo, canRedo }) =>
+    set({ undoAvailable: canUndo, redoAvailable: canRedo }),
+  setPlayerPosition: (playerPosition) => set({ playerPosition }),
+  setTimeOfDay: (timeOfDay) => set({ timeOfDay }),
+  setBodyList: (bodyList) => set({ bodyList }),
+  setValidationWarnings: (validationWarnings) => set({ validationWarnings }),
+  setCsgPending: (csgPending) => set({ csgPending }),
+  setMateStep: (mateStep) => set({ mateStep }),
+  setSelectedBlockDefId: (selectedBlockDefId) => set({ selectedBlockDefId }),
+}))
+
+export function resetStore(): void {
+  useStore.setState(initialState)
+}
