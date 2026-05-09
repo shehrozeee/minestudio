@@ -1,0 +1,2061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Super Duper Easy Modeler</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f12;
+    --panel: #15181d;
+    --panel-2: #1c2026;
+    --line: #2a2f37;
+    --ink: #f4f5f7;
+    --ink-dim: #8b8f97;
+    --accent: #00d563;
+    --accent-2: #ffd60a;
+    --danger: #ff4d4d;
+    --sky-1: #5b8fc7;
+    --sky-2: #a8c8e8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+    background: var(--bg); color: var(--ink); user-select: none;
+  }
+
+  #splash {
+    position: fixed; inset: 0; z-index: 1000;
+    background: linear-gradient(180deg, #1a2030 0%, #0d0f12 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 40px;
+    transition: opacity 0.5s ease;
+  }
+  #splash.hide { opacity: 0; pointer-events: none; }
+  #splash h1 {
+    font-size: 48px; font-weight: 800; letter-spacing: -1.5px;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    margin-bottom: 8px;
+  }
+  #splash .sub {
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    color: var(--ink-dim); letter-spacing: 2px; text-transform: uppercase;
+    margin-bottom: 32px;
+  }
+  #splash .controls {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+    padding: 20px 28px; max-width: 520px; text-align: left;
+    margin-bottom: 28px;
+  }
+  #splash .controls h2 {
+    font-size: 11px; color: var(--ink-dim); letter-spacing: 1.5px;
+    font-family: 'JetBrains Mono', monospace; margin-bottom: 14px;
+  }
+  #splash .controls .row {
+    display: flex; align-items: center; gap: 12px; padding: 6px 0;
+    font-size: 13px;
+  }
+  #splash .controls .row .keys {
+    display: flex; gap: 4px; min-width: 140px;
+  }
+  #splash kbd {
+    background: var(--panel-2); border: 1px solid var(--line);
+    border-bottom-width: 2px; border-radius: 5px;
+    padding: 3px 8px; font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--ink); font-weight: 600;
+  }
+  #splash button {
+    background: var(--accent); color: #0a0b0e;
+    border: none; padding: 14px 36px; border-radius: 12px;
+    font-family: inherit; font-size: 15px; font-weight: 800;
+    cursor: pointer; letter-spacing: 0.5px;
+    transition: all 0.15s; box-shadow: 0 4px 0 #008f43;
+  }
+  #splash button:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #008f43; }
+  #splash button:active { transform: translateY(2px); box-shadow: 0 2px 0 #008f43; }
+
+  #canvas-wrap {
+    position: fixed; inset: 0;
+    background: linear-gradient(180deg, var(--sky-1) 0%, var(--sky-2) 60%, #d8d8da 100%);
+  }
+  #canvas-wrap canvas { display: block; }
+
+  .crosshair {
+    position: fixed; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 24px; height: 24px; pointer-events: none; z-index: 50;
+  }
+  .crosshair::before, .crosshair::after {
+    content: ''; position: absolute;
+    background: rgba(255, 255, 255, 0.85);
+    box-shadow: 0 0 4px rgba(0,0,0,0.6);
+  }
+  .crosshair::before { top: 50%; left: 0; right: 0; height: 2px; transform: translateY(-50%); }
+  .crosshair::after  { left: 50%; top: 0; bottom: 0; width: 2px; transform: translateX(-50%); }
+
+  .hotbar {
+    position: fixed; bottom: 24px; left: 50%;
+    transform: translateX(-50%); z-index: 40;
+    display: flex; gap: 8px; padding: 10px;
+    background: rgba(13, 15, 18, 0.7); backdrop-filter: blur(12px);
+    border: 1px solid var(--line); border-radius: 14px;
+  }
+  .hotbar-wrap {
+    position: fixed; bottom: 24px; left: 50%;
+    transform: translateX(-50%); z-index: 40;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+  }
+  .hotbar-wrap .hotbar { position: static; transform: none; }
+  .hotbar-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    color: var(--ink-dim); letter-spacing: 2px; text-transform: uppercase;
+    background: rgba(13, 15, 18, 0.7); backdrop-filter: blur(12px);
+    border: 1px solid var(--line); border-radius: 8px;
+    padding: 4px 12px;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .hotbar-label.mode2d {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+  .slot {
+    width: 56px; height: 56px;
+    background: var(--panel-2); border: 2px solid transparent;
+    border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--ink); position: relative;
+    transition: transform 0.1s, border-color 0.1s;
+  }
+  .slot:hover { transform: translateY(-3px); }
+  .slot.active {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(0, 213, 99, 0.3);
+  }
+  .slot svg { width: 32px; height: 32px; }
+  .slot .num {
+    position: absolute; top: 2px; left: 4px;
+    font-family: 'JetBrains Mono', monospace; font-size: 9px;
+    color: var(--ink-dim); font-weight: 700;
+  }
+
+  .colorbar {
+    position: fixed; bottom: 116px; left: 50%;
+    transform: translateX(-50%); z-index: 40;
+    display: flex; gap: 6px; padding: 6px 10px;
+    background: rgba(13, 15, 18, 0.7); backdrop-filter: blur(12px);
+    border: 1px solid var(--line); border-radius: 12px;
+  }
+  .color-slot {
+    width: 28px; height: 28px; border-radius: 6px;
+    cursor: pointer; border: 2px solid transparent;
+    transition: transform 0.1s;
+  }
+  .color-slot:hover { transform: scale(1.15); }
+  .color-slot.active {
+    border-color: var(--ink);
+    box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
+  }
+
+  .top-hud {
+    position: fixed; top: 16px; left: 50%;
+    transform: translateX(-50%); z-index: 40;
+    display: flex; gap: 12px; align-items: center;
+    background: rgba(13, 15, 18, 0.7); backdrop-filter: blur(12px);
+    border: 1px solid var(--line); border-radius: 12px;
+    padding: 10px 18px; font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+  }
+  .top-hud .label { color: var(--ink-dim); margin-right: 4px; }
+  .top-hud .v { color: var(--ink); font-weight: 700; }
+  .top-hud .v.fly { color: var(--accent-2); }
+  .top-hud .v.fly.on { color: var(--accent); }
+  .top-hud .v.on { color: var(--accent); }
+  .top-hud .divider { width: 1px; background: var(--line); align-self: stretch; }
+
+  .corner-buttons {
+    position: fixed; top: 16px; right: 16px; z-index: 40;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .corner-buttons button {
+    background: rgba(13, 15, 18, 0.85); backdrop-filter: blur(10px);
+    border: 1px solid var(--line); border-radius: 10px;
+    padding: 10px 14px; color: var(--ink);
+    font-family: inherit; font-size: 12px; font-weight: 700;
+    cursor: pointer; transition: all 0.1s;
+    display: flex; align-items: center; gap: 8px; min-width: 150px;
+  }
+  .corner-buttons button:hover {
+    border-color: var(--accent); transform: translateX(-2px);
+  }
+  .corner-buttons .btn-done { background: var(--accent-2); color: #0a0b0e; border-color: transparent; }
+  .corner-buttons .btn-done:hover { background: #ffe14a; border-color: transparent; }
+
+  .toast {
+    position: fixed; top: 80px; left: 50%;
+    transform: translateX(-50%) translateY(-100px);
+    background: var(--panel-2); border: 1px solid var(--line);
+    border-radius: 12px; padding: 12px 22px;
+    font-size: 14px; font-weight: 600; color: var(--ink);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s;
+    opacity: 0; pointer-events: none; z-index: 60;
+    max-width: 460px; text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.bad { border-color: var(--danger); color: var(--danger); }
+  .toast.good { border-color: var(--accent); color: var(--accent); }
+  .toast.warn { border-color: var(--accent-2); color: var(--accent-2); }
+
+  .paused {
+    position: fixed; inset: 0; z-index: 80;
+    background: rgba(13, 15, 18, 0.85); backdrop-filter: blur(8px);
+    display: none; align-items: center; justify-content: center;
+    flex-direction: column; gap: 16px;
+  }
+  .paused.show { display: flex; }
+  .paused h2 { font-size: 36px; font-weight: 800; letter-spacing: -1px; }
+  .paused p { color: var(--ink-dim); font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+  .paused button {
+    background: var(--accent); color: #0a0b0e; border: none;
+    padding: 14px 32px; border-radius: 12px;
+    font-family: inherit; font-size: 14px; font-weight: 800;
+    cursor: pointer; letter-spacing: 0.5px;
+  }
+
+  .mini-help {
+    position: fixed; bottom: 24px; left: 24px; z-index: 40;
+    background: rgba(13, 15, 18, 0.7); backdrop-filter: blur(12px);
+    border: 1px solid var(--line); border-radius: 10px;
+    padding: 10px 14px; font-size: 11px; color: var(--ink-dim);
+    font-family: 'JetBrains Mono', monospace; line-height: 1.7;
+  }
+  .mini-help kbd {
+    background: var(--panel-2); border: 1px solid var(--line);
+    border-radius: 4px; padding: 1px 5px; font-size: 10px;
+    color: var(--ink); margin: 0 1px;
+  }
+</style>
+</head>
+<body>
+<div id="splash">
+  <h1>Super Duper Easy Modeler</h1>
+  <div class="sub">First-Person Builder · Bambu A1</div>
+  <div class="controls">
+    <h2>How to play</h2>
+    <div class="row"><div class="keys"><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd></div><div>Walk around the plate</div></div>
+    <div class="row"><div class="keys"><kbd>Mouse</kbd></div><div>Look around</div></div>
+    <div class="row"><div class="keys"><kbd>Space</kbd></div><div>Place the shape where you're looking</div></div>
+    <div class="row"><div class="keys"><kbd>1</kbd>–<kbd>6</kbd></div><div>Pick a shape from the hotbar</div></div>
+    <div class="row"><div class="keys"><kbd>7</kbd></div><div>Toggle chain mode (opens chain end-piece bar: 1=fist, 2=claw)</div></div>
+    <div class="row"><div class="keys"><kbd>+</kbd> / <kbd>-</kbd></div><div>(In chain mode) more or fewer links · default 5</div></div>
+    <div class="row"><div class="keys"><kbd>8</kbd></div><div>Toggle ball joint (post with sphere — fits in socket)</div></div>
+    <div class="row"><div class="keys"><kbd>9</kbd></div><div>Toggle socket (post with cup — ball snaps in)</div></div>
+    <div class="row"><div class="keys"><kbd>H</kbd></div><div>Toggle hand mode (4-finger glove for figures)</div></div>
+    <div class="row"><div class="keys"><kbd>Q</kbd> / <kbd>E</kbd></div><div>Cycle filament color</div></div>
+    <div class="row"><div class="keys"><kbd>0</kbd> <kbd>0</kbd></div><div>Press <b>0</b> twice fast = toggle fly mode</div></div>
+    <div class="row"><div class="keys"><kbd>R</kbd> / <kbd>F</kbd></div><div>(Fly) Go up / down</div></div>
+    <div class="row"><div class="keys"><kbd>P</kbd> <kbd>P</kbd></div><div>Aim at a shape, double-tap P to move it · arrows/R/F · P to drop</div></div>
+    <div class="row"><div class="keys"><kbd>X</kbd></div><div>Delete the shape you're looking at</div></div>
+    <div class="row"><div class="keys"><kbd>Backspace</kbd></div><div>Toggle vertical support (places thin upright rod)</div></div>
+    <div class="row"><div class="keys"><kbd>Shift</kbd>+<kbd>⌫</kbd></div><div>Toggle horizontal support (rod points forward)</div></div>
+    <div class="row" style="margin-top:8px; padding-top:8px; border-top: 1px solid var(--line);"><div class="keys" style="color: var(--accent);">🎮 Xbox</div><div>Sticks: walk/look · RT place · LT delete · A fly · D-pad↑ move shape · RB/LB rise/drop · X color · Y shape · B 2D · Start menu</div></div>
+    <div class="row"><div class="keys"><kbd>Ctrl</kbd></div><div>Toggle 2D shape mode (only circles)</div></div>
+    <div class="row"><div class="keys"><kbd>Enter</kbd></div><div>Toggle sideways: 3D shapes lie on their side</div></div>
+    <div class="row"><div class="keys"><kbd>Double-click</kbd></div><div>Free your mouse to click buttons (and back)</div></div>
+    <div class="row"><div class="keys"><kbd>Esc</kbd></div><div>Pause and free your mouse</div></div>
+  </div>
+  <button id="startBtn">▶ START BUILDING</button>
+</div>
+
+<div id="canvas-wrap"></div>
+<div class="crosshair"></div>
+
+<div class="top-hud">
+  <span><span class="label">SHAPES:</span><span class="v" id="hudCount">0</span></span>
+  <div class="divider"></div>
+  <span><span class="label">SHAPE:</span><span class="v" id="hudShape">cube</span></span>
+  <div class="divider"></div>
+  <span><span class="label">COLOR:</span><span class="v" id="hudColor">Jet Black</span></span>
+  <div class="divider"></div>
+  <span><span class="label">MODE:</span><span class="v fly" id="hudMode">WALK</span></span>
+  <div class="divider"></div>
+  <span><span class="label">SUPPORT:</span><span class="v" id="hudSupport">OFF</span></span>
+  <div class="divider"></div>
+  <span><span class="label">ROT:</span><span class="v" id="hudSide">UP</span></span>
+</div>
+
+<div class="corner-buttons">
+  <button class="btn-done" id="doneBtn">✓ Done & Save .3mf</button>
+  <button id="clearBtn">🗑 Clear plate</button>
+  <button id="helpBtn">? Controls</button>
+</div>
+
+<div class="colorbar" id="colorbar"></div>
+<div class="hotbar-wrap">
+  <div class="hotbar-label" id="hotbarLabel">3D shapes</div>
+  <div class="hotbar" id="hotbar"></div>
+</div>
+
+<div class="mini-help">
+  <kbd>Space</kbd> place · <kbd>X</kbd> delete · <kbd>Ctrl</kbd> 2D · <kbd>↵</kbd> sideways · <kbd>⌫</kbd> support · <kbd>0</kbd><kbd>0</kbd> fly
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="paused" id="paused">
+  <h2>Paused</h2>
+  <p>Click resume to keep building</p>
+  <button id="resumeBtn">▶ Resume</button>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
+import JSZip from 'https://cdn.skypack.dev/jszip@3.10.1';
+
+// ---------- CONFIG ----------
+const PLATE_SIZE = 256;
+const PLATE_HEIGHT = 256;
+const PLAYER_HEIGHT = 28;
+const WALK_SPEED = 80;
+const FLY_SPEED = 120;
+const REACH = 90;
+const SHAPE_SIZE = 6;
+
+const SHAPES = [
+  { id: 'cube',     name: 'Cube',     icon: cubeIcon() },
+  { id: 'sphere',   name: 'Sphere',   icon: sphereIcon() },
+  { id: 'cylinder', name: 'Cylinder', icon: cylinderIcon() },
+  { id: 'cone',     name: 'Cone',     icon: coneIcon() },
+  { id: 'pyramid',  name: 'Pyramid',  icon: pyramidIcon() },
+  { id: 'torus',    name: 'Donut',    icon: torusIcon() },
+];
+const FILAMENTS = [
+  { name: 'Jet Black',     hex: '#1a1a1a' },
+  { name: 'Bambu White',   hex: '#ffffff' },
+  { name: 'Bambu Green',   hex: '#00ae42' },
+  { name: 'Sunset Orange', hex: '#ff6b35' },
+  { name: 'Cyber Yellow',  hex: '#ffd60a' },
+  { name: 'Hot Pink',      hex: '#ff2e88' },
+  { name: 'Royal Blue',    hex: '#1e5fff' },
+  { name: 'Lavender',      hex: '#b794f4' },
+  { name: 'Mint',          hex: '#7fffd4' },
+  { name: 'Bambu Red',     hex: '#e63946' },
+];
+
+function cubeIcon(){return '<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 5L33 12V28L20 35L7 28V12L20 5Z"/><path d="M20 5V20M20 20L33 12M20 20L7 12M20 20V35"/></svg>';}
+function sphereIcon(){return '<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="20" cy="20" r="14"/><ellipse cx="20" cy="20" rx="14" ry="5"/><ellipse cx="20" cy="20" rx="5" ry="14"/></svg>';}
+function cylinderIcon(){return '<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5"><ellipse cx="20" cy="10" rx="12" ry="4"/><path d="M8 10V30"/><path d="M32 10V30"/><ellipse cx="20" cy="30" rx="12" ry="4"/></svg>';}
+function coneIcon(){return '<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 6L33 32H7L20 6Z"/><ellipse cx="20" cy="32" rx="13" ry="3"/></svg>';}
+function pyramidIcon(){return '<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 6L34 30L20 34L6 30L20 6Z"/><path d="M20 6L20 34"/></svg>';}
+function torusIcon(){return '<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5"><ellipse cx="20" cy="20" rx="14" ry="8"/><ellipse cx="20" cy="20" rx="6" ry="3"/></svg>';}
+
+// ---------- STATE ----------
+const objects = []; // {id, mesh, type, color, colorName, isSupport}
+let nextId = 1;
+let currentShapeIdx = 0;
+let currentColorIdx = 0;
+let flyMode = false;
+let supportMode = 'off'; // 'off' | 'vertical' | 'horizontal'
+let mode2D = false;      // Ctrl toggles: 2D circle mode (only flat discs)
+let sideways = false;    // Enter toggles: 3D shapes lay on their side
+let chainMode = false;   // 7 toggles: places chain links with end-plates
+let chainLinkCount = 5;  // how many links the next chain will have (1-12)
+let chainEndPiece = 'fist'; // 'fist' or 'claw' — picked from the chain hotbar
+let ballMode = false;    // 8 toggles: places a ball-joint stem
+let socketMode = false;  // 9 toggles: places a socket-joint cup
+let handMode = false;    // H toggles: places a 4-finger glove (thumb + 3 fingers)
+
+// ---------- THREE.JS ----------
+const wrap = document.getElementById('canvas-wrap');
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x88bbe8);
+scene.fog = new THREE.Fog(0xa8c8e8, 400, 1500);
+
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.5, 3000);
+const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
+renderer.setPixelRatio(1);
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = false;
+wrap.appendChild(renderer.domElement);
+
+scene.add(new THREE.HemisphereLight(0xddeeff, 0x665544, 0.9));
+const sun = new THREE.DirectionalLight(0xffffff, 1.0);
+sun.position.set(200, 400, 250);
+scene.add(sun);
+
+const controls = new PointerLockControls(camera, renderer.domElement);
+scene.add(controls.getObject());
+controls.getObject().position.set(0, PLAYER_HEIGHT, PLATE_SIZE / 2 - 30);
+camera.lookAt(0, PLAYER_HEIGHT, 0);
+
+const splash = document.getElementById('splash');
+const pausedScreen = document.getElementById('paused');
+
+document.getElementById('startBtn').addEventListener('click', () => {
+  splash.classList.add('hide');
+  setTimeout(() => splash.style.display = 'none', 500);
+  controls.lock();
+});
+document.getElementById('resumeBtn').addEventListener('click', () => controls.lock());
+document.getElementById('helpBtn').addEventListener('click', () => {
+  splash.style.display = 'flex';
+  splash.classList.remove('hide');
+  controls.unlock();
+});
+
+controls.addEventListener('lock', () => pausedScreen.classList.remove('show'));
+controls.addEventListener('unlock', () => {
+  // If user double-clicked into "menu mode", don't show the pause screen
+  if (menuMode) return;
+  if (splash.style.display !== 'flex') pausedScreen.classList.add('show');
+});
+
+// ---------- MENU MODE (double-click to free the mouse cursor) ----------
+// While menuMode is on, the mouse is unlocked from the camera so you can
+// click the HUD buttons. Game keeps running normally — no pause, no overlay.
+let menuMode = false;
+function setMenuMode(on) {
+  menuMode = on;
+  if (on) {
+    pausedScreen.classList.remove('show');
+    if (controls.isLocked) controls.unlock();
+  } else {
+    controls.lock();
+  }
+}
+
+renderer.domElement.addEventListener('dblclick', () => {
+  setMenuMode(!menuMode);
+});
+
+// ---------- BUILD PLATE ----------
+buildPlate();
+function buildPlate() {
+  const half = PLATE_SIZE / 2;
+  const plate = new THREE.Mesh(
+    new THREE.BoxGeometry(PLATE_SIZE, 4, PLATE_SIZE),
+    new THREE.MeshLambertMaterial({ color: 0x222831 })
+  );
+  plate.position.y = -2; plate.receiveShadow = true; scene.add(plate);
+
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#2a3038'; ctx.fillRect(0, 0, 512, 512);
+  ctx.fillStyle = '#3a4048';
+  for (let x = 8; x < 512; x += 16)
+    for (let y = 8; y < 512; y += 16) {
+      ctx.beginPath(); ctx.arc(x, y, 1, 0, Math.PI * 2); ctx.fill();
+    }
+  ctx.fillStyle = '#00d563'; ctx.font = 'bold 24px sans-serif'; ctx.fillText('BAMBU LAB', 24, 495);
+  ctx.fillStyle = '#666'; ctx.font = '12px monospace'; ctx.fillText('A1 · 256 × 256 × 256', 24, 30);
+  const tex = new THREE.CanvasTexture(canvas);
+  const grid = new THREE.Mesh(
+    new THREE.PlaneGeometry(PLATE_SIZE - 4, PLATE_SIZE - 4),
+    new THREE.MeshLambertMaterial({ map: tex })
+  );
+  grid.rotation.x = -Math.PI / 2; grid.position.y = 0.05; grid.receiveShadow = true;
+  scene.add(grid);
+
+  const frame = new THREE.Mesh(
+    new THREE.BoxGeometry(PLATE_SIZE + 24, 8, PLATE_SIZE + 24),
+    new THREE.MeshLambertMaterial({ color: 0x9aa0a8 })
+  );
+  frame.position.y = -6; frame.receiveShadow = true; scene.add(frame);
+
+  const edges = new THREE.EdgesGeometry(new THREE.BoxGeometry(PLATE_SIZE, PLATE_HEIGHT, PLATE_SIZE));
+  const volLines = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({
+    color: 0x00d563, transparent: true, opacity: 0.3
+  }));
+  volLines.position.y = PLATE_HEIGHT / 2; scene.add(volLines);
+
+  const postMat = new THREE.MeshLambertMaterial({ color: 0xe8e8ea });
+  const post = new THREE.Mesh(new THREE.BoxGeometry(12, PLATE_HEIGHT + 30, 12), postMat);
+  post.position.set(-half - 18, PLATE_HEIGHT / 2, half + 18);
+  post.castShadow = true; scene.add(post);
+  const beam = new THREE.Mesh(new THREE.BoxGeometry(PLATE_SIZE + 60, 14, 18), postMat);
+  beam.position.set(0, PLATE_HEIGHT + 14, half + 18);
+  beam.castShadow = true; scene.add(beam);
+
+  const ground = new THREE.Mesh(
+    new THREE.PlaneGeometry(2000, 2000),
+    new THREE.ShadowMaterial({ opacity: 0.35 })
+  );
+  ground.rotation.x = -Math.PI / 2; ground.position.y = -10.1;
+  ground.receiveShadow = true; scene.add(ground);
+}
+
+// ---------- GHOST PREVIEW ----------
+const ghostMat = new THREE.MeshBasicMaterial({
+  color: 0x00d563, transparent: true, opacity: 0.4, wireframe: true,
+});
+let ghost = null;
+function rebuildGhost() {
+  if (ghost) {
+    scene.remove(ghost);
+    // Dispose every geometry on the ghost (could be a Mesh or a Group)
+    ghost.traverse(o => { if (o.geometry) o.geometry.dispose(); });
+  }
+
+  if (chainMode) {
+    ghost = makeWholeChain(chainLinkCount, 0x00d563, true);
+  } else if (ballMode) {
+    ghost = makeBallJoint(0x00d563, true);
+  } else if (socketMode) {
+    ghost = makeSocketJoint(0x00d563, true);
+  } else if (handMode) {
+    ghost = makeHand(0x00d563, true);
+  } else {
+    let geo;
+    if (supportMode !== 'off') {
+      geo = new THREE.CylinderGeometry(1.25, 1.25, SHAPE_SIZE, 12);
+    } else if (mode2D) {
+      geo = new THREE.CylinderGeometry(SHAPE_SIZE / 3, SHAPE_SIZE / 3, 1.2, 32);
+    } else {
+      geo = makeGeometry(SHAPES[currentShapeIdx].id, SHAPE_SIZE);
+    }
+    ghost = new THREE.Mesh(geo, ghostMat);
+  }
+
+  ghost.rotation.set(0, 0, 0);
+  // Sideways for 3D shapes: lay on side (around Z)
+  if (sideways && !mode2D && !chainMode && supportMode === 'off') {
+    ghost.rotation.z = Math.PI / 2;
+  }
+  // Sideways for 2D circle: stand it up (around X) — yaw is set per-frame
+  if (sideways && mode2D && !chainMode) {
+    ghost.rotation.x = Math.PI / 2;
+  }
+  // Horizontal support: rod laid on its side; yaw set per-frame to point away from player
+  if (supportMode === 'horizontal') {
+    ghost.rotation.z = Math.PI / 2;
+  }
+  ghost.visible = false;
+  scene.add(ghost);
+}
+
+function makeGeometry(type, s = SHAPE_SIZE) {
+  switch (type) {
+    case 'cube':     return new THREE.BoxGeometry(s, s, s);
+    case 'sphere':   return new THREE.SphereGeometry(s / 2, 16, 12);
+    case 'cylinder': return new THREE.CylinderGeometry(s / 2, s / 2, s, 16);
+    case 'cone':     return new THREE.ConeGeometry(s / 2, s, 16);
+    case 'pyramid':  return new THREE.ConeGeometry(s / 2 * Math.SQRT2, s, 4);
+    case 'torus':    return new THREE.TorusGeometry(s / 2, s / 5, 10, 20);
+  }
+}
+
+// Lego Technic style ball joint: flat round base, a thin neck, then a near-
+// spherical ball with a small flat collar where the neck meets it. Total
+// height fits one cell.
+function makeBallJoint(colorHex, isGhost = false) {
+  const grp = new THREE.Group();
+  const mat = isGhost
+    ? new THREE.MeshBasicMaterial({ color: 0x00d563, transparent: true, opacity: 0.5, wireframe: true })
+    : new THREE.MeshLambertMaterial({ color: colorHex });
+
+  // Flat base disc — like the printable plate Lego ball-studs come on
+  const baseR = 3.5, baseH = 1;
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(baseR, baseR, baseH, 16), mat);
+  base.position.y = -SHAPE_SIZE / 2 + baseH / 2;
+  grp.add(base);
+
+  // Neck — thin cylinder
+  const neckH = 2.5;
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.1, neckH, 12), mat);
+  neck.position.y = base.position.y + baseH / 2 + neckH / 2;
+  grp.add(neck);
+
+  // Ball — slightly squashed sphere, like the Lego stud (not perfectly round)
+  const ballR = 2.5;
+  const ball = new THREE.Mesh(new THREE.SphereGeometry(ballR, 16, 12), mat);
+  ball.position.y = neck.position.y + neckH / 2 + ballR * 0.85;
+  ball.scale.y = 0.92; // slight squash to match Lego look
+  grp.add(ball);
+
+  return grp;
+}
+
+// Lego Technic style socket: flat round base, thin neck, then a hollow cup
+// with a narrow circular opening at the top. The Lego-style socket has a
+// vertical slit cut in the side to let the cup flex when the ball snaps in.
+function makeSocketJoint(colorHex, isGhost = false) {
+  const grp = new THREE.Group();
+  const mat = isGhost
+    ? new THREE.MeshBasicMaterial({ color: 0x00d563, transparent: true, opacity: 0.5, wireframe: true })
+    : new THREE.MeshLambertMaterial({ color: colorHex, side: THREE.DoubleSide });
+
+  const baseR = 3.5, baseH = 1;
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(baseR, baseR, baseH, 16), mat);
+  base.position.y = -SHAPE_SIZE / 2 + baseH / 2;
+  grp.add(base);
+
+  const neckH = 2.5;
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.1, neckH, 12), mat);
+  neck.position.y = base.position.y + baseH / 2 + neckH / 2;
+  grp.add(neck);
+
+  // Cup: outer hemisphere with a small hole at the top.
+  // Bottom half (the cup wall) — open on top
+  const cupR = 3;
+  const cupOuter = new THREE.Mesh(
+    new THREE.SphereGeometry(cupR, 18, 10, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2),
+    mat
+  );
+  cupOuter.position.y = neck.position.y + neckH / 2;
+  grp.add(cupOuter);
+
+  // Inner cavity (slightly larger than ball: 2.75mm clearance — printable)
+  const cupInner = new THREE.Mesh(
+    new THREE.SphereGeometry(2.75, 16, 10, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2),
+    mat
+  );
+  cupInner.position.y = cupOuter.position.y;
+  grp.add(cupInner);
+
+  // Vertical slit on the front so the cup can flex (like Lego sockets):
+  // we render it as a thin rectangular dark mark on the front face. Visual
+  // only — at this scale it reads as the slit.
+  if (!isGhost) {
+    const slitMat = new THREE.MeshLambertMaterial({ color: 0x111111 });
+    const slit = new THREE.Mesh(new THREE.BoxGeometry(0.3, 2.5, 0.75), slitMat);
+    slit.position.set(0, cupOuter.position.y + 0.5, cupR - 0.25);
+    grp.add(slit);
+  }
+
+  return grp;
+}
+
+// 4-finger glove: a flat palm with a thumb stub on one side and 3 fingers
+// poking up out of the top. Sized to fit one grid cell. Useful for sticking
+// onto an arm/cylinder to make figures.
+function makeHand(colorHex, isGhost = false) {
+  const grp = new THREE.Group();
+  const mat = isGhost
+    ? new THREE.MeshBasicMaterial({ color: 0x00d563, transparent: true, opacity: 0.5, wireframe: true })
+    : new THREE.MeshLambertMaterial({ color: colorHex });
+
+  // Palm — a flat-ish rounded rectangle (we use a box; "rounded" isn't free
+  // in three's BoxGeometry, so we just keep it small)
+  const palmW = 7, palmH = 6, palmD = 2;
+  const palm = new THREE.Mesh(new THREE.BoxGeometry(palmW, palmH, palmD), mat);
+  palm.position.y = -SHAPE_SIZE / 2 + palmH / 2 + 2; // sits a little above the floor
+  grp.add(palm);
+
+  // Three fingers poking out of the top of the palm
+  const fingerW = 1.6, fingerH = 3.5, fingerD = 1.6;
+  const fingerY = palm.position.y + palmH / 2 + fingerH / 2;
+  [-2.1, 0, 2.1].forEach(x => {
+    const f = new THREE.Mesh(new THREE.BoxGeometry(fingerW, fingerH, fingerD), mat);
+    f.position.set(x, fingerY, 0);
+    grp.add(f);
+    // Rounded fingertip (small sphere on top)
+    const tip = new THREE.Mesh(new THREE.SphereGeometry(fingerW / 2, 8, 6), mat);
+    tip.position.set(x, fingerY + fingerH / 2, 0);
+    grp.add(tip);
+  });
+
+  // Thumb sticking out the side
+  const thumb = new THREE.Mesh(new THREE.BoxGeometry(2.5, 1.6, 1.6), mat);
+  thumb.position.set(palmW / 2 + 1.25, palm.position.y + 0.5, 0);
+  thumb.rotation.z = -0.3; // angled out a bit
+  grp.add(thumb);
+  const thumbTip = new THREE.Mesh(new THREE.SphereGeometry(0.8, 8, 6), mat);
+  thumbTip.position.set(palmW / 2 + 2.75, palm.position.y, 0);
+  grp.add(thumbTip);
+
+  return grp;
+}
+
+// Cat Mario style claw — 4 sharp curved talons fanning forward from a small
+// paw pad. Each talon is a tapered cone tilted outward from the pad center.
+function makeClaw(colorHex, isGhost = false) {
+  const grp = new THREE.Group();
+  const mat = isGhost
+    ? new THREE.MeshBasicMaterial({ color: 0x00d563, transparent: true, opacity: 0.5, wireframe: true })
+    : new THREE.MeshLambertMaterial({ color: colorHex });
+
+  // Paw pad — small flat-ish puck the talons attach to
+  const padR = 2.2, padH = 1.6;
+  const pad = new THREE.Mesh(new THREE.CylinderGeometry(padR, padR, padH, 12), mat);
+  pad.rotation.z = Math.PI / 2; // lay flat (axis along X so talons fan forward)
+  pad.position.set(-padH / 2, 0, 0);
+  grp.add(pad);
+
+  // 4 sharp talons. Each one is a thin cone (radius 0.6 -> 0, length 4mm)
+  // pointing along +X (forward), but tilted slightly so they fan out.
+  const talonOffsets = [
+    { y:  1.0, z:  1.0 },
+    { y:  1.0, z: -1.0 },
+    { y: -1.0, z:  1.0 },
+    { y: -1.0, z: -1.0 },
+  ];
+  for (const off of talonOffsets) {
+    const talon = new THREE.Mesh(new THREE.ConeGeometry(0.6, 4, 8), mat);
+    // ConeGeometry's tip points along +Y; rotate so it points along +X
+    talon.rotation.z = -Math.PI / 2;
+    talon.position.set(2, off.y, off.z);
+    // Tilt each talon outward a little so they fan apart
+    talon.rotation.y = Math.atan2(off.z * 0.25, 1);
+    talon.rotation.x = Math.atan2(off.y * 0.25, 1) * 0.0;
+    grp.add(talon);
+  }
+
+  // Wrist stub on the back so it joins cleanly to the chain
+  const wrist = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.4, 1.5, 10), mat);
+  wrist.rotation.z = Math.PI / 2;
+  wrist.position.set(-padR - 0.4, 0, 0);
+  grp.add(wrist);
+
+  return grp;
+}
+
+// Closed fist with thumb wrapped on top — for punching pose at the end of
+// chains. The fist is small (about half a SHAPE_SIZE wide), built from a
+// rounded box for the palm/knuckle mass plus a thumb stub on top.
+function makeFist(colorHex, isGhost = false) {
+  const grp = new THREE.Group();
+  const mat = isGhost
+    ? new THREE.MeshBasicMaterial({ color: 0x00d563, transparent: true, opacity: 0.5, wireframe: true })
+    : new THREE.MeshLambertMaterial({ color: colorHex });
+
+  // Main fist mass — a rounded box (we approximate with a regular box).
+  // Slightly taller than wide to read as a fist viewed from the side.
+  const fistW = 4, fistH = 4.5, fistD = 4;
+  const fistBody = new THREE.Mesh(new THREE.BoxGeometry(fistW, fistH, fistD), mat);
+  fistBody.position.set(0, 0, 0); // chain's last link sits behind, fist starts at x=0
+  grp.add(fistBody);
+
+  // Four little knuckle bumps on the front face (the punching surface)
+  // Front face is +X side. Knuckles are arranged in a 2×2 grid.
+  const kSize = 1;
+  const knucklePositions = [
+    [fistW / 2, fistH * 0.18, -fistD * 0.25],
+    [fistW / 2, fistH * 0.18,  fistD * 0.25],
+    [fistW / 2, -fistH * 0.18, -fistD * 0.25],
+    [fistW / 2, -fistH * 0.18,  fistD * 0.25],
+  ];
+  for (const [x, y, z] of knucklePositions) {
+    const k = new THREE.Mesh(new THREE.SphereGeometry(kSize, 8, 6), mat);
+    k.position.set(x, y, z);
+    grp.add(k);
+  }
+
+  // Thumb wrapped on top — a small angled cylinder lying across the top of
+  // the fist (going from the side around to the front, like a real wrapped
+  // thumb).
+  const thumb = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.7, 3.5, 8), mat);
+  thumb.rotation.z = Math.PI / 2;        // lay it horizontally along X
+  thumb.rotation.y = -0.4;               // angle it slightly across the top
+  thumb.position.set(0.5, fistH / 2 + 0.4, 0);
+  grp.add(thumb);
+  // Tip of the thumb (rounded)
+  const thumbTip = new THREE.Mesh(new THREE.SphereGeometry(0.7, 8, 6), mat);
+  thumbTip.position.set(2, fistH / 2 + 0.6, 0.6);
+  grp.add(thumbTip);
+
+  // Wrist stub on the back so it joins cleanly to the chain
+  const wrist = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.4, 1.5, 10), mat);
+  wrist.rotation.z = Math.PI / 2;
+  wrist.position.set(-fistW / 2 - 0.4, 0, 0);
+  grp.add(wrist);
+
+  return grp;
+}
+
+// Build a single chain link in the Lego style: a flat oval ring (a stadium/
+// pill shape outline). Long axis = X, ring is in the XY plane (flat).
+// To make the inner hole, we build the ring as 4 thin pieces: 2 straight
+// "rails" and 2 curved "ends".
+function makeChainLink(colorHex, isGhost = false, axis = 'flat') {
+  const grp = new THREE.Group();
+  const mat = isGhost
+    ? new THREE.MeshBasicMaterial({ color: 0x00d563, transparent: true, opacity: 0.55, wireframe: true })
+    : new THREE.MeshLambertMaterial({ color: colorHex });
+
+  // Link dimensions tuned for a real-chain look at 6mm grid scale:
+  //   linkLen 9mm: long enough that adjacent links visibly stick out past
+  //     each other's hole-edges instead of being fully obscured
+  //   linkWide 4.5mm: hole is wider so you can see clearly through it
+  //   tubeR 0.5mm: thinner wire metal — leaves more empty space inside the
+  //     ring, so the gap reads as a real chain link rather than a fat oval
+  const linkLen = 9;
+  const linkWide = 4.5;
+  const tubeR = 0.5;
+
+  // Two straight rails (top + bottom of the oval)
+  const railLen = linkLen - linkWide; // straight section between the two end-curves
+  const railGeo = new THREE.CylinderGeometry(tubeR, tubeR, railLen, 8);
+  const railTop = new THREE.Mesh(railGeo, mat);
+  railTop.rotation.z = Math.PI / 2; // lay flat along X
+  railTop.position.y = linkWide / 2 - tubeR;
+  grp.add(railTop);
+  const railBot = new THREE.Mesh(railGeo, mat);
+  railBot.rotation.z = Math.PI / 2;
+  railBot.position.y = -(linkWide / 2 - tubeR);
+  grp.add(railBot);
+
+  // Two end curves — half-rings on each side
+  const arcGeo = new THREE.TorusGeometry(linkWide / 2 - tubeR, tubeR, 6, 12, Math.PI);
+  const leftArc = new THREE.Mesh(arcGeo, mat);
+  leftArc.rotation.z = Math.PI / 2;   // open toward +X
+  leftArc.position.x = -railLen / 2;
+  grp.add(leftArc);
+  const rightArc = new THREE.Mesh(arcGeo, mat);
+  rightArc.rotation.z = -Math.PI / 2; // open toward -X
+  rightArc.position.x = railLen / 2;
+  grp.add(rightArc);
+
+  // Lay every chain link FLAT on the build plate. The link is built in the
+  // XY plane (rails are at +/-Y), but in three.js Y is up — so as built, the
+  // ring is standing up like a coin. Rotating 90° around X tips it down so
+  // it lies flat on the XZ floor and is fully 3D-printable.
+  grp.rotation.x = Math.PI / 2;
+
+  // axis controls how each link is rotated *within* the floor plane so
+  // consecutive links zigzag and visually interlock:
+  //   'flat' — ring lies flat (default orientation after the X-rotate above)
+  //   'edge' — ring is also flat, but rotated 45° around the vertical (Y)
+  //            axis so it sits diagonally next to its neighbor.
+  if (axis === 'edge') {
+    grp.rotation.y = Math.PI / 4;
+  }
+
+  return grp;
+}
+
+// Build the whole chain as a curved line of links + a fist or claw at the far
+// end. droop=0 means perfectly horizontal (T-pose arm). droop=1 means the
+// chain hangs straight down. Anything in between curves smoothly downward.
+//
+// Layout along the chain's local +X axis:
+//   x = -SHAPE_SIZE/2 .. +SHAPE_SIZE/2  → fat glue block (cube-sized, sits at the start)
+//   x = SHAPE_SIZE/2 .. (links)         → chain links curving along the droop path
+//   end of curve                        → fist (closed hand, thumb on top)
+function makeWholeChain(linkCount, colorHex, isGhost = false, droop = 0) {
+  const grp = new THREE.Group();
+  // Spacing for real chain look: each link's end-arc passes through the next
+  // link's hole. Links are 9mm long, so spacing of 4.5mm = each new link's
+  // end sits in the middle of the previous link's opening. Combined with
+  // alternating flat/edge orientation, you get real interlocking rings with
+  // visible daylight inside each link's hole.
+  const SPACING = 5.5;
+
+  // Fat glue block at the start — same size as a normal cube, for attaching
+  // the chain to your print with glue.
+  const glueMat = isGhost
+    ? new THREE.MeshBasicMaterial({ color: 0x00d563, transparent: true, opacity: 0.55, wireframe: true })
+    : new THREE.MeshLambertMaterial({ color: colorHex });
+  const glue = new THREE.Mesh(
+    new THREE.BoxGeometry(SHAPE_SIZE, SHAPE_SIZE, SHAPE_SIZE),
+    glueMat
+  );
+  glue.position.set(0, 0, 0); // chain origin sits at the glue block's center
+  grp.add(glue);
+
+  // Curve starts after the glue block on the +X side
+  const startX = SHAPE_SIZE / 2;
+  function pointOnCurve(i) {
+    const t = i / Math.max(1, linkCount);
+    if (droop <= 0.001) {
+      return { x: startX + i * SPACING, y: 0, angle: 0 };
+    }
+    const totalLen = linkCount * SPACING;
+    const sweep = (Math.PI / 2) * droop;
+    const radius = totalLen / Math.max(0.001, sweep);
+    const angle = sweep * t;
+    const x = startX + radius * Math.sin(angle);
+    const y = -radius * (1 - Math.cos(angle));
+    return { x, y, angle };
+  }
+
+  // Lay the whole chain on the build plate. Links sit at y=tubeR so their
+  // bottoms touch the floor (y=0). tubeR is 0.5mm — match the value in
+  // makeChainLink so this stays consistent.
+  // Lift the whole chain ~2mm above the plate so it's clearly above the
+  // surface (not buried). The bottom of each ring will sit at y ≈ 1.5mm.
+  const FLOOR_LIFT = 2;
+
+  for (let i = 0; i < linkCount; i++) {
+    const link = makeChainLink(colorHex, isGhost, i % 2 === 0 ? 'flat' : 'edge');
+    const p = pointOnCurve(i);
+    // Wrap each link in a holder so droop-following rotation doesn't conflict
+    // with the link's own internal rotation (which lays it flat on the floor).
+    const holder = new THREE.Group();
+    holder.position.set(p.x, p.y + FLOOR_LIFT, 0);
+    if (droop > 0.001) holder.rotation.z = -p.angle;
+    holder.add(link);
+    grp.add(holder);
+  }
+
+  // End piece at the far end (fist or claw, picked from the chain hotbar)
+  const endPt = pointOnCurve(linkCount);
+  const endPiece = (chainEndPiece === 'claw')
+    ? makeClaw(colorHex, isGhost)
+    : makeFist(colorHex, isGhost);
+  const endHolder = new THREE.Group();
+  endHolder.position.set(endPt.x, endPt.y + FLOOR_LIFT, 0);
+  if (droop > 0.001) endHolder.rotation.z = -endPt.angle;
+  endHolder.add(endPiece);
+  grp.add(endHolder);
+
+  return grp;
+}
+
+function snapToGrid(p) {
+  const g = SHAPE_SIZE;
+  return new THREE.Vector3(
+    Math.round(p.x / g) * g,
+    Math.max(0, Math.round((p.y - g/2) / g)) * g + g / 2,
+    Math.round(p.z / g) * g,
+  );
+}
+
+const raycaster = new THREE.Raycaster();
+const forward = new THREE.Vector3();
+
+// Track when the camera/player position has changed so we can skip
+// the ghost raycast on idle frames.
+const _lastCamState = { x: 0, y: 0, z: 0, rx: 0, ry: 0, rz: 0, n: -1 };
+function camStateChanged() {
+  const p = controls.getObject().position;
+  const r = camera.rotation;
+  const c = _lastCamState;
+  const same = (
+    Math.abs(p.x - c.x) < 0.01 &&
+    Math.abs(p.y - c.y) < 0.01 &&
+    Math.abs(p.z - c.z) < 0.01 &&
+    Math.abs(r.x - c.rx) < 0.001 &&
+    Math.abs(r.y - c.ry) < 0.001 &&
+    c.n === objects.length
+  );
+  c.x = p.x; c.y = p.y; c.z = p.z;
+  c.rx = r.x; c.ry = r.y; c.rz = r.z;
+  c.n = objects.length;
+  return !same;
+}
+
+function updateGhost() {
+  if (!controls.isLocked) { if (ghost) ghost.visible = false; return; }
+  // Skip the raycast & box math when nothing relevant has changed since last frame
+  if (!camStateChanged()) return;
+  camera.getWorldDirection(forward);
+  raycaster.set(camera.position, forward);
+  raycaster.far = REACH;
+
+  const hits = raycaster.intersectObjects(objects.map(o => o.mesh), true);
+  let placePoint = null;
+
+  if (hits.length) {
+    const h = hits[0];
+    const normal = h.face.normal.clone().transformDirection(h.object.matrixWorld);
+    placePoint = h.point.clone().add(normal.multiplyScalar(SHAPE_SIZE * 0.51));
+  } else {
+    const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+    const groundHit = new THREE.Vector3();
+    if (raycaster.ray.intersectPlane(plane, groundHit)) {
+      const dist = camera.position.distanceTo(groundHit);
+      if (dist <= REACH && Math.abs(groundHit.x) <= PLATE_SIZE/2 && Math.abs(groundHit.z) <= PLATE_SIZE/2) {
+        placePoint = groundHit;
+      }
+    }
+  }
+
+  if (!placePoint) { ghost.visible = false; return; }
+
+  const snapped = snapToGrid(placePoint);
+  const half = PLATE_SIZE / 2 - SHAPE_SIZE / 2;
+  if (Math.abs(snapped.x) > half || Math.abs(snapped.z) > half) { ghost.visible = false; return; }
+  if (snapped.y > PLATE_HEIGHT - SHAPE_SIZE / 2) { ghost.visible = false; return; }
+
+  ghost.position.copy(snapped);
+
+  // 2D + sideways: yaw the disc to face the camera, and sit it on the floor
+  if (mode2D && sideways) {
+    const yaw = Math.atan2(camera.position.x - snapped.x, camera.position.z - snapped.z);
+    ghost.rotation.y = yaw;
+    const r = SHAPE_SIZE / 3;
+    ghost.position.y = Math.max(r, snapped.y - SHAPE_SIZE / 2 + r);
+  } else if (mode2D) {
+    ghost.position.y = Math.max(0.6, snapped.y - SHAPE_SIZE / 2 + 0.6);
+  }
+
+  // Chain: orient along the player's looking direction so the bar spans
+  // forward. Also: compute droop from height — high up = chain hangs down,
+  // floor level = chain stays horizontal. Rebuild the ghost geometry when
+  // droop changes meaningfully.
+  if (chainMode) {
+    camera.getWorldDirection(forward);
+    const yaw = Math.atan2(forward.x, forward.z);
+    const snapYaw = Math.round(yaw / (Math.PI / 2)) * (Math.PI / 2);
+    ghost.rotation.set(0, -snapYaw + Math.PI / 2, 0);
+
+    // Drop the ghost to floor level so the preview shows links actually
+    // sitting on the build plate (not floating).
+    ghost.position.y -= SHAPE_SIZE / 2;
+
+    // Droop logic:
+    //   y near floor → 0 (T-pose / horizontal)
+    //   y high       → up to 1 (full hang-down)
+    const heightAboveFloor = ghost.position.y; // already at floor base now
+    const DROOP_START = SHAPE_SIZE * 1.5;
+    const DROOP_FULL = 30;
+    let droop = (heightAboveFloor - DROOP_START) / (DROOP_FULL - DROOP_START);
+    droop = Math.max(0, Math.min(1, droop));
+
+    // Only rebuild the ghost if droop changed by more than ~0.05
+    const lastDroop = ghost.userData.lastDroop ?? -1;
+    if (Math.abs(droop - lastDroop) > 0.05) {
+      const oldPos = ghost.position.clone();
+      const oldRotY = ghost.rotation.y;
+      scene.remove(ghost);
+      ghost.traverse(o => { if (o.geometry) o.geometry.dispose(); });
+      ghost = makeWholeChain(chainLinkCount, 0x00d563, true, droop);
+      ghost.userData.lastDroop = droop;
+      ghost.position.copy(oldPos);
+      ghost.rotation.y = oldRotY;
+      scene.add(ghost);
+    }
+  }
+
+  // Horizontal support: orient the rod to point away from the player along the
+  // direction they're looking, parallel to the floor.
+  if (supportMode === 'horizontal') {
+    camera.getWorldDirection(forward);
+    const yaw = Math.atan2(forward.x, forward.z);
+    ghost.rotation.set(0, -yaw - Math.PI / 2, Math.PI / 2);
+
+    const targetY = ghost.position.y;
+    const adjustedY = findClearY(ghost);
+    if (adjustedY === null) {
+      ghost.visible = false;
+      return;
+    }
+    ghost.position.y = adjustedY;
+    // Yellow tint when auto-shifted (only if ghost has a material — Groups don't)
+    const shifted = Math.abs(adjustedY - targetY) > 0.5;
+    if (ghost.material) ghost.material.color.set(shifted ? 0xffd60a : 0x00d563);
+  } else if (ghost.material) {
+    ghost.material.color.set(0x00d563);
+  }
+
+  ghost.visible = true;
+}
+
+// Walk the ghost upward (then downward) in small steps until its bounding box
+// no longer collides with any non-support shape. Returns the cleared Y, or null
+// if no valid position was found within the build volume.
+function findClearY(mesh) {
+  const STEP = 2;        // mm per step
+  const MAX_TRIES = 80;  // up to ~160mm of search range either direction
+  const startY = mesh.position.y;
+  const ROD_RADIUS = 2.5;
+
+  function collides(y) {
+    mesh.position.y = y;
+    mesh.updateMatrixWorld(true);
+    const myBox = new THREE.Box3().setFromObject(mesh);
+    for (const o of objects) {
+      if (o.isSupport) continue; // ignore other supports
+      const ob = new THREE.Box3().setFromObject(o.mesh);
+      // Slight tolerance so just-touching counts as fine, not as collision
+      if (myBox.intersectsBox(ob)) {
+        // Real overlap, not just edge-touch
+        const overlapX = Math.min(myBox.max.x, ob.max.x) - Math.max(myBox.min.x, ob.min.x);
+        const overlapY = Math.min(myBox.max.y, ob.max.y) - Math.max(myBox.min.y, ob.min.y);
+        const overlapZ = Math.min(myBox.max.z, ob.max.z) - Math.max(myBox.min.z, ob.min.z);
+        if (overlapX > 0.5 && overlapY > 0.5 && overlapZ > 0.5) return true;
+      }
+    }
+    return false;
+  }
+
+  // Already clear? Use as-is.
+  if (!collides(startY)) {
+    mesh.position.y = startY;
+    return startY;
+  }
+
+  // Try shifting up
+  for (let i = 1; i <= MAX_TRIES; i++) {
+    const y = startY + i * STEP;
+    if (y > PLATE_HEIGHT - 4) break;
+    if (!collides(y)) {
+      mesh.position.y = y;
+      return y;
+    }
+  }
+  // Try shifting down
+  for (let i = 1; i <= MAX_TRIES; i++) {
+    const y = startY - i * STEP;
+    if (y < ROD_RADIUS) break;
+    if (!collides(y)) {
+      mesh.position.y = y;
+      return y;
+    }
+  }
+  // No clear spot found
+  mesh.position.y = startY;
+  return null;
+}
+
+// ---------- PLACE / DELETE ----------
+function placeShape() {
+  if (!ghost || !ghost.visible) {
+    showToast('Look at the plate to place', 'warn');
+    return;
+  }
+  const pos = ghost.position.clone();
+
+  for (const o of objects) {
+    if (o.mesh.position.distanceToSquared(pos) < 1) {
+      showToast('Already something here', 'warn');
+      return;
+    }
+  }
+
+  if (supportMode !== 'off') {
+    const support = new THREE.Mesh(
+      new THREE.CylinderGeometry(1.25, 1.25, SHAPE_SIZE, 12),
+      new THREE.MeshLambertMaterial({ color: 0x888d95, transparent: true, opacity: 0.85 })
+    );
+    support.position.copy(ghost.position);
+    support.rotation.copy(ghost.rotation);
+    support.castShadow = true; support.receiveShadow = true;
+    scene.add(support);
+    objects.push({
+      id: nextId++, mesh: support, type: 'support',
+      color: '#888d95', colorName: 'Support', isSupport: true,
+    });
+    refreshHUD();
+    return;
+  }
+
+  if (chainMode) {
+    const fil = FILAMENTS[currentColorIdx];
+
+    // Compute droop from how high up the chain is being placed
+    const heightAboveFloor = ghost.position.y - SHAPE_SIZE / 2;
+    const DROOP_START = SHAPE_SIZE * 1.5;
+    const DROOP_FULL = 30;
+    let droop = (heightAboveFloor - DROOP_START) / (DROOP_FULL - DROOP_START);
+    droop = Math.max(0, Math.min(1, droop));
+
+    const chain = makeWholeChain(chainLinkCount, fil.hex, false, droop);
+    chain.position.copy(ghost.position);
+    // The chain's links are built to sit at y=0 (floor). Ghost.position.y
+    // sits at SHAPE_SIZE/2 because of the grid snap — drop the chain back
+    // down to floor so the links actually rest on the build plate.
+    chain.position.y -= SHAPE_SIZE / 2;
+    camera.getWorldDirection(forward);
+    const yaw = Math.atan2(forward.x, forward.z);
+    chain.rotation.y = yaw - Math.PI / 2;
+
+    scene.add(chain);
+    objects.push({
+      id: nextId++, mesh: chain, type: 'chain',
+      color: fil.hex, colorName: fil.name, isSupport: false,
+    });
+    refreshHUD();
+    return;
+  }
+
+  if (ballMode) {
+    const fil = FILAMENTS[currentColorIdx];
+    const ball = makeBallJoint(fil.hex, false);
+    ball.position.copy(ghost.position);
+    ball.rotation.copy(ghost.rotation);
+    scene.add(ball);
+    objects.push({
+      id: nextId++, mesh: ball, type: 'ball',
+      color: fil.hex, colorName: fil.name, isSupport: false,
+    });
+    refreshHUD();
+    return;
+  }
+
+  if (socketMode) {
+    const fil = FILAMENTS[currentColorIdx];
+    const socket = makeSocketJoint(fil.hex, false);
+    socket.position.copy(ghost.position);
+    socket.rotation.copy(ghost.rotation);
+    scene.add(socket);
+    objects.push({
+      id: nextId++, mesh: socket, type: 'socket',
+      color: fil.hex, colorName: fil.name, isSupport: false,
+    });
+    refreshHUD();
+    return;
+  }
+
+  if (handMode) {
+    const fil = FILAMENTS[currentColorIdx];
+    const hand = makeHand(fil.hex, false);
+    hand.position.copy(ghost.position);
+    hand.rotation.copy(ghost.rotation);
+    // Yaw the hand to face the player so the palm faces "forward"
+    const yaw = Math.atan2(camera.position.x - hand.position.x, camera.position.z - hand.position.z);
+    hand.rotation.y = yaw;
+    scene.add(hand);
+    objects.push({
+      id: nextId++, mesh: hand, type: 'hand',
+      color: fil.hex, colorName: fil.name, isSupport: false,
+    });
+    refreshHUD();
+    return;
+  }
+
+  if (mode2D) {
+    // 2D circle = thin flat disc.
+    // Default: lies flat on the surface (like a coin lying on a table)
+    // Sideways: stands up like a coin facing the camera
+    const fil = FILAMENTS[currentColorIdx];
+    const disc = new THREE.Mesh(
+      new THREE.CylinderGeometry(SHAPE_SIZE / 3, SHAPE_SIZE / 3, 1.2, 32),
+      new THREE.MeshLambertMaterial({ color: fil.hex })
+    );
+
+    if (sideways) {
+      // Stand it up on its edge so the flat face points at the camera
+      // CylinderGeometry's height runs along Y; rotating X by 90° puts it on Z
+      disc.rotation.x = Math.PI / 2;
+      // Then yaw it to face the camera
+      const yaw = Math.atan2(camera.position.x - pos.x, camera.position.z - pos.z);
+      disc.rotation.y = yaw;
+      // Sit the disc upright on the floor — its center should be at radius height
+      const r = SHAPE_SIZE / 3;
+      const standY = pos.y - SHAPE_SIZE / 2 + r;
+      disc.position.set(pos.x, Math.max(r, standY), pos.z);
+    } else {
+      // Flat: sit just on top of the surface
+      const flatY = pos.y - SHAPE_SIZE / 2 + 0.6;
+      disc.position.set(pos.x, Math.max(0.6, flatY), pos.z);
+    }
+
+    disc.castShadow = true; disc.receiveShadow = true;
+    scene.add(disc);
+    objects.push({
+      id: nextId++, mesh: disc, type: 'circle2d',
+      color: fil.hex, colorName: fil.name, isSupport: false,
+    });
+    refreshHUD();
+    return;
+  }
+
+  const type = SHAPES[currentShapeIdx].id;
+  const fil = FILAMENTS[currentColorIdx];
+  const mesh = new THREE.Mesh(
+    makeGeometry(type, SHAPE_SIZE),
+    new THREE.MeshLambertMaterial({ color: fil.hex })
+  );
+  mesh.position.copy(pos);
+  if (sideways) mesh.rotation.z = Math.PI / 2;
+  mesh.castShadow = true; mesh.receiveShadow = true;
+  scene.add(mesh);
+
+  const obj = {
+    id: nextId++, mesh, type,
+    color: fil.hex, colorName: fil.name, isSupport: false,
+  };
+  objects.push(obj);
+  maybeAddSupports(obj);
+  refreshHUD();
+}
+
+function maybeAddSupports(obj) {
+  // Only add for shapes that are unstable when floating: sphere, cone, pyramid, torus
+  if (obj.type === 'cube' || obj.type === 'cylinder') return;
+
+  const bb = new THREE.Box3().setFromObject(obj.mesh);
+  if (bb.min.y < 1) return;
+
+  // Anything underneath in the same column?
+  const below = objects.find(o => {
+    if (o.id === obj.id) return false;
+    const ob = new THREE.Box3().setFromObject(o.mesh);
+    const overlapX = !(bb.max.x < ob.min.x || bb.min.x > ob.max.x);
+    const overlapZ = !(bb.max.z < ob.min.z || bb.min.z > ob.max.z);
+    return overlapX && overlapZ && ob.max.y <= bb.min.y + 0.5;
+  });
+  if (below) return;
+
+  const supportHeight = bb.min.y;
+  if (supportHeight < SHAPE_SIZE * 0.5) return;
+
+  const support = new THREE.Mesh(
+    new THREE.CylinderGeometry(2.2, 2.2, supportHeight, 12),
+    new THREE.MeshLambertMaterial({ color: 0x666c75, transparent: true, opacity: 0.85 })
+  );
+  support.position.set(obj.mesh.position.x, supportHeight / 2, obj.mesh.position.z);
+  support.castShadow = true; support.receiveShadow = true;
+  scene.add(support);
+
+  objects.push({
+    id: nextId++, mesh: support, type: 'support',
+    color: '#666c75', colorName: 'Support', isSupport: true,
+  });
+  showToast('🏗 Auto-support added — your shape was floating!', 'good');
+}
+
+function deleteLookedAt() {
+  camera.getWorldDirection(forward);
+  raycaster.set(camera.position, forward);
+  raycaster.far = REACH;
+  const hits = raycaster.intersectObjects(objects.map(o => o.mesh), true);
+  if (!hits.length) { showToast('Look at a shape to delete it', 'warn'); return; }
+  // Walk up the parent chain to find which top-level object.mesh this belongs to
+  let hitNode = hits[0].object;
+  let obj = null;
+  while (hitNode && !obj) {
+    obj = objects.find(o => o.mesh === hitNode);
+    if (!obj) hitNode = hitNode.parent;
+  }
+  if (!obj) return;
+  scene.remove(obj.mesh);
+  // Dispose recursively (chain is a Group; regular shapes are Meshes)
+  obj.mesh.traverse(o => {
+    if (o.geometry) o.geometry.dispose();
+    if (o.material) o.material.dispose();
+  });
+  objects.splice(objects.indexOf(obj), 1);
+  refreshHUD();
+}
+
+// ---------- INPUT ----------
+const move = { fwd: false, back: false, left: false, right: false, up: false, down: false };
+let lastZeroPress = 0;
+let lastPPress = 0;
+let moveTarget = null; // the object currently being moved, or null
+
+// Find the object the player is currently aiming at (returns the entry from
+// `objects`, not the raw mesh). Used by the P-double-tap shape-move feature.
+function findLookedAtObject() {
+  camera.getWorldDirection(forward);
+  raycaster.set(camera.position, forward);
+  raycaster.far = REACH;
+  const hits = raycaster.intersectObjects(objects.map(o => o.mesh), true);
+  if (!hits.length) return null;
+  let node = hits[0].object;
+  while (node) {
+    const found = objects.find(o => o.mesh === node);
+    if (found) return found;
+    node = node.parent;
+  }
+  return null;
+}
+
+function startMovingLookedAt() {
+  if (moveTarget) {
+    // Already moving something — drop it
+    showToast('📍 Dropped', 'good');
+    moveTarget = null;
+    return;
+  }
+  const obj = findLookedAtObject();
+  if (!obj) {
+    showToast('Look at a shape, then double-tap P to move it', 'warn');
+    return;
+  }
+  moveTarget = obj;
+  showToast(`✋ Moving ${obj.type} — arrows to move, R/F up/down, P to drop`, 'good');
+}
+
+document.addEventListener('keydown', (e) => {
+  switch (e.key) {
+    case 'ArrowUp':    move.fwd = true; e.preventDefault(); break;
+    case 'ArrowDown':  move.back = true; e.preventDefault(); break;
+    case 'ArrowLeft':  move.left = true; e.preventDefault(); break;
+    case 'ArrowRight': move.right = true; e.preventDefault(); break;
+    case 'r': case 'R': move.up = true; break;
+    case 'f': case 'F': move.down = true; break;
+    case ' ': e.preventDefault(); placeShape(); break;
+    case 'x': case 'X': deleteLookedAt(); break;
+    case 'Backspace': {
+      e.preventDefault();
+      // Plain Backspace cycles: off -> vertical -> off
+      // Shift+Backspace cycles: off -> horizontal -> off (independent toggle)
+      if (e.shiftKey) {
+        supportMode = (supportMode === 'horizontal') ? 'off' : 'horizontal';
+      } else {
+        supportMode = (supportMode === 'vertical') ? 'off' : 'vertical';
+      }
+      rebuildGhost();
+      const sb = document.getElementById('hudSupport');
+      if (sb) {
+        if (supportMode === 'off') {
+          sb.textContent = 'OFF';
+        } else if (supportMode === 'vertical') {
+          sb.textContent = 'VERT';
+        } else {
+          sb.textContent = 'HORIZ';
+        }
+        sb.classList.toggle('on', supportMode !== 'off');
+      }
+      if (supportMode === 'vertical') {
+        showToast('🏗 Vertical support — Space places upright rod', 'good');
+      } else if (supportMode === 'horizontal') {
+        showToast('➡ Horizontal support — rod points where you look', 'good');
+      } else {
+        showToast('Support mode OFF', '');
+      }
+      break;
+    }
+    case 'Control': {
+      e.preventDefault();
+      mode2D = !mode2D;
+      renderHotbar();
+      rebuildGhost();
+      const lab = document.getElementById('hudShape');
+      lab.textContent = mode2D ? '2D circle' : SHAPES[currentShapeIdx].name.toLowerCase();
+      showToast(mode2D ? '⚪ 2D Mode — only circles' : '🧊 3D Mode — back to shapes', 'good');
+      break;
+    }
+    case 'Enter': {
+      e.preventDefault();
+      sideways = !sideways;
+      rebuildGhost();
+      const sd = document.getElementById('hudSide');
+      if (sd) {
+        sd.textContent = sideways ? 'SIDE' : 'UP';
+        sd.classList.toggle('on', sideways);
+      }
+      if (mode2D) {
+        showToast(sideways ? '🪙 Coin upright — facing you' : '⬇ Coin flat on surface', 'good');
+      } else {
+        showToast(sideways ? '↪ Shapes will lie sideways' : '⬆ Shapes will stand upright', 'good');
+      }
+      break;
+    }
+    case '0': {
+      const now = performance.now();
+      if (now - lastZeroPress < 400) {
+        flyMode = !flyMode;
+        const lab = document.getElementById('hudMode');
+        lab.textContent = flyMode ? 'FLY' : 'WALK';
+        lab.classList.toggle('on', flyMode);
+        showToast(flyMode ? '✈ Fly mode ON — R/F to go up/down' : '🚶 Walk mode', 'good');
+        lastZeroPress = 0;
+      } else {
+        lastZeroPress = now;
+      }
+      break;
+    }
+    case 'p': case 'P': {
+      // Double-tap P starts moving the looked-at shape.
+      // Single-tap P while already moving = drop.
+      const now = performance.now();
+      if (moveTarget) {
+        moveTarget = null;
+        showToast('📍 Dropped', 'good');
+        lastPPress = 0;
+      } else if (now - lastPPress < 400) {
+        startMovingLookedAt();
+        lastPPress = 0;
+      } else {
+        lastPPress = now;
+      }
+      break;
+    }
+    case 'q': case 'Q':
+      currentColorIdx = (currentColorIdx - 1 + FILAMENTS.length) % FILAMENTS.length;
+      refreshColorBar();
+      break;
+    case 'e': case 'E':
+      currentColorIdx = (currentColorIdx + 1) % FILAMENTS.length;
+      refreshColorBar();
+      break;
+  }
+  if (e.key >= '1' && e.key <= '6' && !mode2D && !chainMode && !ballMode && !socketMode && !handMode) {
+    const idx = parseInt(e.key) - 1;
+    if (idx < SHAPES.length) selectShape(idx);
+  }
+  // While in chain mode, 1 = fist, 2 = claw
+  if (chainMode && (e.key === '1' || e.key === '2')) {
+    chainEndPiece = e.key === '1' ? 'fist' : 'claw';
+    renderHotbar();
+    rebuildGhost();
+    showToast(`Chain end: ${chainEndPiece}`, 'good');
+  }
+  if (e.key === '7') {
+    chainMode = !chainMode;
+    if (chainMode) { ballMode = false; socketMode = false; handMode = false; }
+    renderHotbar();
+    rebuildGhost();
+    document.getElementById('hudShape').textContent = chainMode ? `chain ×${chainLinkCount}` : (mode2D ? '2D circle' : SHAPES[currentShapeIdx].name.toLowerCase());
+    showToast(chainMode ? `⛓ Chain mode — pick fist or claw, ${chainLinkCount} links · + / - to change · Space places` : 'Chain mode OFF', chainMode ? 'good' : '');
+  }
+  // + / - adjust chain link count while in chain mode
+  if (chainMode && (e.key === '+' || e.key === '=')) {
+    chainLinkCount = Math.min(12, chainLinkCount + 1);
+    rebuildGhost();
+    document.getElementById('hudShape').textContent = `chain ×${chainLinkCount}`;
+    showToast(`⛓ Chain length: ${chainLinkCount} links`, 'good');
+  }
+  if (chainMode && (e.key === '-' || e.key === '_')) {
+    chainLinkCount = Math.max(1, chainLinkCount - 1);
+    rebuildGhost();
+    document.getElementById('hudShape').textContent = `chain ×${chainLinkCount}`;
+    showToast(`⛓ Chain length: ${chainLinkCount} links`, 'good');
+  }
+  if (e.key === '8') {
+    ballMode = !ballMode;
+    if (ballMode) { chainMode = false; socketMode = false; handMode = false; }
+    rebuildGhost();
+    document.getElementById('hudShape').textContent = ballMode ? 'ball joint' : (mode2D ? '2D circle' : SHAPES[currentShapeIdx].name.toLowerCase());
+    showToast(ballMode ? '🔵 Ball joint — fits into a socket' : 'Ball mode OFF', ballMode ? 'good' : '');
+  }
+  if (e.key === '9') {
+    socketMode = !socketMode;
+    if (socketMode) { chainMode = false; ballMode = false; handMode = false; }
+    rebuildGhost();
+    document.getElementById('hudShape').textContent = socketMode ? 'socket' : (mode2D ? '2D circle' : SHAPES[currentShapeIdx].name.toLowerCase());
+    showToast(socketMode ? '⚪ Socket — a ball can snap into this' : 'Socket mode OFF', socketMode ? 'good' : '');
+  }
+  if (e.key === 'h' || e.key === 'H') {
+    handMode = !handMode;
+    if (handMode) { chainMode = false; ballMode = false; socketMode = false; }
+    rebuildGhost();
+    document.getElementById('hudShape').textContent = handMode ? 'hand' : (mode2D ? '2D circle' : SHAPES[currentShapeIdx].name.toLowerCase());
+    showToast(handMode ? '✋ Hand mode — 4-finger glove for figures' : 'Hand mode OFF', handMode ? 'good' : '');
+  }
+});
+document.addEventListener('keyup', (e) => {
+  switch (e.key) {
+    case 'ArrowUp':    move.fwd = false; break;
+    case 'ArrowDown':  move.back = false; break;
+    case 'ArrowLeft':  move.left = false; break;
+    case 'ArrowRight': move.right = false; break;
+    case 'r': case 'R': move.up = false; break;
+    case 'f': case 'F': move.down = false; break;
+  }
+});
+
+// ---------- GAMEPAD (Xbox controller) ----------
+// Uses the browser Gamepad API. Left stick = walk, Right stick = look,
+// RB = place, LB = delete, A = toggle fly, Y = cycle shape, X = cycle color, B = 2D toggle.
+const gamepadState = {
+  connected: false,
+  // edge-detection so a held button only fires once per press
+  prev: { rt: false, lt: false, a: false, b: false, x: false, y: false, start: false, back: false, dpadUp: false },
+};
+
+window.addEventListener('gamepadconnected', (e) => {
+  gamepadState.connected = true;
+  showToast(`🎮 Controller connected: ${e.gamepad.id.split('(')[0].trim()}`, 'good');
+});
+window.addEventListener('gamepaddisconnected', () => {
+  gamepadState.connected = false;
+  showToast('🎮 Controller disconnected', 'warn');
+});
+
+function tickGamepad(dt) {
+  if (!gamepadState.connected) return;
+  const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+  let pad = null;
+  for (const p of pads) { if (p && p.connected) { pad = p; break; } }
+  if (!pad) return;
+
+  // The standard Xbox layout in the Gamepad API:
+  //   axes[0/1] = left stick X/Y, axes[2/3] = right stick X/Y
+  //   buttons[0]=A, [1]=B, [2]=X, [3]=Y, [4]=LB, [5]=RB, [6]=LT, [7]=RT,
+  //   [8]=Back, [9]=Start, [10]=L3, [11]=R3, [12-15]=DPad
+  const DEAD = 0.18;
+  const dz = (v) => Math.abs(v) < DEAD ? 0 : v;
+
+  const lx = dz(pad.axes[0] || 0);
+  const ly = dz(pad.axes[1] || 0);
+  const rx = dz(pad.axes[2] || 0);
+  const ry = dz(pad.axes[3] || 0);
+
+  // --- Movement (left stick) ---
+  // ly is inverted: pushing forward gives negative
+  if (controls.isLocked) {
+    const speed = flyMode ? FLY_SPEED : WALK_SPEED;
+    if (lx !== 0) controls.moveRight(lx * speed * dt);
+    if (ly !== 0) controls.moveForward(-ly * speed * dt);
+  }
+
+  // --- Look (right stick) ---
+  // We feed PointerLockControls the same kind of events its mouse handler
+  // expects, so it does its own yaw/pitch math (no roll, proper clamping).
+  // This stops the "world tilting around me" feeling that you get from
+  // rotating the camera directly.
+  if (controls.isLocked && (rx !== 0 || ry !== 0)) {
+    const LOOK_SPEED = 600; // pixels-per-second equivalent at full deflection
+    const movementX = rx * LOOK_SPEED * dt;
+    const movementY = ry * LOOK_SPEED * dt;
+    // PointerLockControls' onMouseMove only reads movementX/movementY off the event.
+    const fakeEvt = { movementX, movementY };
+    // Call the same handler the controls would use for a mouse move.
+    // (The internal method exists in three's PointerLockControls implementation.)
+    if (typeof controls.onMouseMove === 'function') {
+      controls.onMouseMove(fakeEvt);
+    } else {
+      // Fallback: dispatch a real mousemove on the document
+      document.dispatchEvent(new MouseEvent('mousemove', {
+        movementX, movementY, bubbles: true,
+      }));
+    }
+  }
+
+  // --- Buttons (with edge detection) ---
+  const btn = (i) => pad.buttons[i] && pad.buttons[i].pressed;
+  // Treat triggers as digital with a 0.5 threshold so they edge-detect cleanly
+  const trig = (i) => pad.buttons[i] && pad.buttons[i].value > 0.5;
+
+  const rt    = trig(7);   // RT — place
+  const lt    = trig(6);   // LT — delete
+  const a     = btn(0);
+  const b     = btn(1);
+  const x     = btn(2);
+  const y     = btn(3);
+  const start = btn(9);
+  const back  = btn(8);
+
+  // RT: place
+  if (rt && !gamepadState.prev.rt && controls.isLocked) placeShape();
+  // LT: delete
+  if (lt && !gamepadState.prev.lt && controls.isLocked) deleteLookedAt();
+  // A: toggle fly mode
+  if (a && !gamepadState.prev.a) {
+    flyMode = !flyMode;
+    const lab = document.getElementById('hudMode');
+    lab.textContent = flyMode ? 'FLY' : 'WALK';
+    lab.classList.toggle('on', flyMode);
+    showToast(flyMode ? '✈ Fly mode ON' : '🚶 Walk mode', 'good');
+  }
+  // Y: cycle shape forward (only meaningful in 3D mode)
+  if (y && !gamepadState.prev.y && !mode2D) {
+    selectShape((currentShapeIdx + 1) % SHAPES.length);
+  }
+  // X: cycle color forward
+  if (x && !gamepadState.prev.x) {
+    currentColorIdx = (currentColorIdx + 1) % FILAMENTS.length;
+    refreshColorBar();
+  }
+  // B: toggle 2D mode
+  if (b && !gamepadState.prev.b) {
+    mode2D = !mode2D;
+    renderHotbar();
+    rebuildGhost();
+    document.getElementById('hudShape').textContent = mode2D ? '2D circle' : SHAPES[currentShapeIdx].name.toLowerCase();
+    showToast(mode2D ? '⚪ 2D Mode' : '🧊 3D Mode', 'good');
+  }
+  // Start: pause / open menu
+  if (start && !gamepadState.prev.start) {
+    if (controls.isLocked) controls.unlock();
+    else controls.lock();
+  }
+
+  // D-pad UP: start/stop moving the looked-at shape (same as double-tap P)
+  const dpadUp = pad.buttons[12] && pad.buttons[12].pressed;
+  if (dpadUp && !gamepadState.prev.dpadUp && controls.isLocked) {
+    if (moveTarget) {
+      moveTarget = null;
+      showToast('📍 Dropped', 'good');
+    } else {
+      startMovingLookedAt();
+    }
+  }
+
+  // Bumpers while flying: RB rise, LB drop (since triggers are now place/delete)
+  if (flyMode && controls.isLocked) {
+    const rb = pad.buttons[5] && pad.buttons[5].pressed;
+    const lb = pad.buttons[4] && pad.buttons[4].pressed;
+    const obj = controls.getObject();
+    if (rb) obj.position.y += FLY_SPEED * dt;
+    if (lb) obj.position.y -= FLY_SPEED * dt;
+    if (obj.position.y < PLAYER_HEIGHT * 0.4) obj.position.y = PLAYER_HEIGHT * 0.4;
+    if (obj.position.y > PLATE_HEIGHT + 80) obj.position.y = PLATE_HEIGHT + 80;
+  }
+
+  gamepadState.prev = { rt, lt, a, b, x, y, start, back, dpadUp };
+}
+
+// ---------- MOVEMENT ----------
+const direction = new THREE.Vector3();
+let lastTime = performance.now();
+
+function tickMovement() {
+  const time = performance.now();
+  const dt = Math.min(0.05, (time - lastTime) / 1000);
+  lastTime = time;
+  if (!controls.isLocked) return;
+
+  // If we're moving a shape, redirect arrow keys + R/F to that shape instead
+  // of moving the player around. Speed is gentler so you can position carefully.
+  if (moveTarget) {
+    const SHAPE_MOVE_SPEED = 30; // mm/s
+    const m = moveTarget.mesh;
+    // Move relative to the camera's facing direction so "forward" feels right
+    camera.getWorldDirection(forward);
+    const yaw = Math.atan2(forward.x, forward.z);
+    const fwd = { x: Math.sin(yaw), z: Math.cos(yaw) };
+    const right = { x: Math.cos(yaw), z: -Math.sin(yaw) };
+
+    const fz = Number(move.fwd) - Number(move.back);
+    const rx = Number(move.right) - Number(move.left);
+    m.position.x += (fwd.x * fz + right.x * rx) * SHAPE_MOVE_SPEED * dt;
+    m.position.z += (fwd.z * fz + right.z * rx) * SHAPE_MOVE_SPEED * dt;
+
+    if (move.up)   m.position.y += SHAPE_MOVE_SPEED * dt;
+    if (move.down) m.position.y -= SHAPE_MOVE_SPEED * dt;
+    // Keep above floor and within plate bounds
+    if (m.position.y < 0) m.position.y = 0;
+    const half = PLATE_SIZE / 2 - SHAPE_SIZE / 2;
+    m.position.x = Math.max(-half, Math.min(half, m.position.x));
+    m.position.z = Math.max(-half, Math.min(half, m.position.z));
+    return;
+  }
+
+  const speed = flyMode ? FLY_SPEED : WALK_SPEED;
+  direction.z = Number(move.fwd) - Number(move.back);
+  direction.x = Number(move.right) - Number(move.left);
+  direction.normalize();
+
+  controls.moveRight(direction.x * speed * dt);
+  controls.moveForward(direction.z * speed * dt);
+
+  const obj = controls.getObject();
+  if (flyMode) {
+    if (move.up)   obj.position.y += FLY_SPEED * dt;
+    if (move.down) obj.position.y -= FLY_SPEED * dt;
+    if (obj.position.y < PLAYER_HEIGHT * 0.4) obj.position.y = PLAYER_HEIGHT * 0.4;
+    if (obj.position.y > PLATE_HEIGHT + 80) obj.position.y = PLATE_HEIGHT + 80;
+  } else {
+    obj.position.y = PLAYER_HEIGHT;
+  }
+
+  const lim = PLATE_SIZE / 2 + 60;
+  obj.position.x = Math.max(-lim, Math.min(lim, obj.position.x));
+  obj.position.z = Math.max(-lim, Math.min(lim, obj.position.z));
+}
+
+// ---------- HUD / HOTBAR / COLORS ----------
+const hotbar = document.getElementById('hotbar');
+const hotbarLabel = document.getElementById('hotbarLabel');
+
+function circle2dIcon() {
+  return '<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2"><circle cx="20" cy="20" r="13"/></svg>';
+}
+
+function fistIcon() {
+  return '<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="11" y="13" width="18" height="18" rx="3"/><circle cx="16" cy="20" r="1.2"/><circle cx="20" cy="20" r="1.2"/><circle cx="24" cy="20" r="1.2"/><path d="M11 13C13 10 22 9 25 13"/></svg>';
+}
+function clawIcon() {
+  return '<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="14" cy="20" r="5"/><path d="M19 16 L31 11"/><path d="M19 19 L33 18"/><path d="M19 22 L33 25"/><path d="M19 25 L31 31"/></svg>';
+}
+
+function renderHotbar() {
+  hotbar.innerHTML = '';
+  if (chainMode) {
+    if (hotbarLabel) {
+      hotbarLabel.textContent = 'Chain end piece';
+      hotbarLabel.classList.add('mode2d'); // reuse the highlight style
+    }
+    const ends = [
+      { id: 'fist', name: 'Fist',  icon: fistIcon() },
+      { id: 'claw', name: 'Claw',  icon: clawIcon() },
+    ];
+    ends.forEach((p, i) => {
+      const slot = document.createElement('div');
+      slot.className = 'slot' + (chainEndPiece === p.id ? ' active' : '');
+      slot.innerHTML = `<span class="num">${i+1}</span>${p.icon}`;
+      slot.style.color = '#cdd1d9';
+      slot.title = `${p.name} at end of chain`;
+      slot.addEventListener('click', (e) => {
+        e.stopPropagation();
+        chainEndPiece = p.id;
+        renderHotbar();
+        rebuildGhost();
+        if (!controls.isLocked && !menuMode && splash.style.display === 'none') controls.lock();
+      });
+      hotbar.appendChild(slot);
+    });
+    return;
+  }
+  if (mode2D) {
+    if (hotbarLabel) {
+      hotbarLabel.textContent = '2D shapes';
+      hotbarLabel.classList.add('mode2d');
+    }
+    const slot = document.createElement('div');
+    slot.className = 'slot active';
+    slot.innerHTML = `<span class="num">●</span>${circle2dIcon()}`;
+    slot.style.color = '#cdd1d9';
+    slot.title = '2D Circle (press Space to place)';
+    hotbar.appendChild(slot);
+  } else {
+    if (hotbarLabel) {
+      hotbarLabel.textContent = '3D shapes';
+      hotbarLabel.classList.remove('mode2d');
+    }
+    SHAPES.forEach((s, i) => {
+      const slot = document.createElement('div');
+      slot.className = 'slot' + (i === currentShapeIdx ? ' active' : '');
+      slot.innerHTML = `<span class="num">${i+1}</span>${s.icon}`;
+      slot.style.color = '#cdd1d9';
+      slot.title = `${s.name} (press ${i+1})`;
+      slot.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selectShape(i);
+        if (!controls.isLocked && !menuMode && splash.style.display === 'none') controls.lock();
+      });
+      hotbar.appendChild(slot);
+    });
+  }
+}
+renderHotbar();
+function selectShape(i) {
+  currentShapeIdx = i;
+  document.querySelectorAll('.slot').forEach((el, idx) => el.classList.toggle('active', idx === i));
+  rebuildGhost();
+  refreshHUD();
+}
+
+const colorbar = document.getElementById('colorbar');
+FILAMENTS.forEach((f, i) => {
+  const sw = document.createElement('div');
+  sw.className = 'color-slot' + (i === 0 ? ' active' : '');
+  sw.style.background = f.hex;
+  sw.title = f.name;
+  sw.addEventListener('click', (e) => {
+    e.stopPropagation();
+    currentColorIdx = i;
+    refreshColorBar();
+    if (!controls.isLocked && !menuMode && splash.style.display === 'none') controls.lock();
+  });
+  colorbar.appendChild(sw);
+});
+function refreshColorBar() {
+  document.querySelectorAll('.color-slot').forEach((el, idx) => el.classList.toggle('active', idx === currentColorIdx));
+  refreshHUD();
+}
+
+function refreshHUD() {
+  document.getElementById('hudCount').textContent = objects.filter(o => !o.isSupport).length;
+  document.getElementById('hudShape').textContent = SHAPES[currentShapeIdx].name.toLowerCase();
+  document.getElementById('hudColor').textContent = FILAMENTS[currentColorIdx].name;
+}
+refreshHUD();
+rebuildGhost();
+
+let toastTimer = null;
+function showToast(msg, kind = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + kind;
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.className = 'toast ' + kind; }, 2200);
+}
+
+// ---------- DONE / EXPORT ----------
+document.getElementById('clearBtn').addEventListener('click', () => {
+  if (objects.length === 0) return;
+  controls.unlock();
+  if (!confirm('Clear all shapes from the plate?')) return;
+  objects.slice().forEach(o => {
+    scene.remove(o.mesh);
+    o.mesh.traverse(node => {
+      if (node.geometry) node.geometry.dispose();
+      if (node.material) node.material.dispose();
+    });
+  });
+  objects.length = 0;
+  refreshHUD();
+});
+
+document.getElementById('doneBtn').addEventListener('click', async () => {
+  controls.unlock();
+  if (objects.length === 0) { showToast('Add some shapes first!', 'warn'); return; }
+  const btn = document.getElementById('doneBtn');
+  const original = btn.innerHTML;
+  btn.innerHTML = '⏳ Saving...';
+  btn.disabled = true;
+  try {
+    const blob = await build3mf(objects);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `my_model_${Date.now()}.3mf`;
+    a.click();
+    URL.revokeObjectURL(url);
+    btn.innerHTML = '✓ Saved!';
+    showToast('Saved! Drag the .3mf into Bambu Studio to print.', 'good');
+  } catch (err) {
+    btn.innerHTML = '✗ Failed';
+    showToast('Something went wrong saving.', 'bad');
+    console.error(err);
+  }
+  setTimeout(() => { btn.innerHTML = original; btn.disabled = false; }, 2500);
+});
+
+async function build3mf(objs) {
+  // Split into regular shapes (which get clustered/merged so Bambu Studio
+  // doesn't flag overlapping shapes as collisions) and supports (which stay
+  // as their own separate objects so the user can delete them in Bambu Studio
+  // or break them off the print).
+  const regular = objs.filter(o => !o.isSupport);
+  const supports = objs.filter(o => o.isSupport);
+
+  // Union-find on regular shapes only
+  const parent = regular.map((_, i) => i);
+  const find = (i) => parent[i] === i ? i : (parent[i] = find(parent[i]));
+  const union = (a, b) => { parent[find(a)] = find(b); };
+  const boxes = regular.map(o => new THREE.Box3().setFromObject(o.mesh));
+  const TOL = 0.6;
+  for (let i = 0; i < regular.length; i++) {
+    for (let j = i + 1; j < regular.length; j++) {
+      const a = boxes[i], b = boxes[j];
+      const ox = !(a.max.x < b.min.x - TOL || a.min.x > b.max.x + TOL);
+      const oy = !(a.max.y < b.min.y - TOL || a.min.y > b.max.y + TOL);
+      const oz = !(a.max.z < b.min.z - TOL || a.min.z > b.max.z + TOL);
+      if (ox && oy && oz) union(i, j);
+    }
+  }
+  const clusters = {};
+  for (let i = 0; i < regular.length; i++) {
+    const r = find(i);
+    (clusters[r] ||= []).push(i);
+  }
+
+  // Helper: emit one object XML block from a list of source objects
+  let objectXmls = '', itemBuf = '', materialsBuf = '';
+  let baseIndex = 0, nextOid = 2;
+
+  function emitObject(sourceObjs, isSupport) {
+    const lead = sourceObjs[0];
+    const hex = lead.color.replace('#','').toUpperCase().padStart(6, '0');
+    const safeName = lead.colorName.replace(/[<>&"']/g, '');
+    materialsBuf += `    <base name="${safeName}" displaycolor="#${hex}FF"/>\n`;
+
+    let vStr = '', tStr = '', vOff = 0;
+    for (const obj of sourceObjs) {
+      obj.mesh.updateMatrixWorld(true);
+      // Collect every Mesh under this object (Groups have multiple, normal
+      // shapes are themselves a Mesh).
+      const meshes = [];
+      obj.mesh.traverse(node => {
+        if (node.isMesh && node.geometry) meshes.push(node);
+      });
+      for (const m of meshes) {
+        const geo = m.geometry.clone();
+        geo.applyMatrix4(m.matrixWorld);
+        const pos = geo.attributes.position;
+        for (let k = 0; k < pos.count; k++) {
+          const x = pos.getX(k), y = pos.getY(k), z = pos.getZ(k);
+          vStr += `      <vertex x="${x.toFixed(4)}" y="${(-z).toFixed(4)}" z="${y.toFixed(4)}"/>\n`;
+        }
+        const ix = geo.index;
+        if (ix) {
+          const ia = ix.array;
+          for (let k = 0; k < ia.length; k += 3) {
+            tStr += `      <triangle v1="${ia[k]+vOff}" v2="${ia[k+2]+vOff}" v3="${ia[k+1]+vOff}"/>\n`;
+          }
+        } else {
+          for (let k = 0; k < pos.count; k += 3) {
+            tStr += `      <triangle v1="${k+vOff}" v2="${k+2+vOff}" v3="${k+1+vOff}"/>\n`;
+          }
+        }
+        vOff += pos.count;
+      }
+    }
+    const oid = nextOid++;
+    const partType = isSupport ? 'support' : 'model';
+    // 3MF "support" object type is recognized by Bambu Studio as a removable support
+    objectXmls += `  <object id="${oid}" type="${partType}" pid="1" pindex="${baseIndex}">
+    <mesh>
+      <vertices>
+${vStr}      </vertices>
+      <triangles>
+${tStr}      </triangles>
+    </mesh>
+  </object>
+`;
+    itemBuf += `    <item objectid="${oid}" transform="1 0 0 0 1 0 0 0 1 0 0 0"/>\n`;
+    baseIndex++;
+  }
+
+  // Emit each cluster of regular shapes as one merged object
+  for (const key of Object.keys(clusters)) {
+    const idxs = clusters[key];
+    emitObject(idxs.map(i => regular[i]), false);
+  }
+  // Emit each support as its own separate object (don't merge supports with anything)
+  for (const s of supports) {
+    emitObject([s], true);
+  }
+
+  const materials = `  <basematerials id="1">\n${materialsBuf}  </basematerials>`;
+  const modelXml = `<?xml version="1.0" encoding="UTF-8"?>
+<model unit="millimeter" xml:lang="en-US" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02" xmlns:m="http://schemas.microsoft.com/3dmanufacturing/material/2015/02">
+  <metadata name="Application">Super Duper Easy Modeler</metadata>
+  <metadata name="CreationDate">${new Date().toISOString().split('T')[0]}</metadata>
+  <metadata name="Designer">Super Duper Easy Modeler</metadata>
+  <metadata name="Title">Super Duper Easy Model</metadata>
+  <resources>
+${materials}
+${objectXmls}  </resources>
+  <build>
+${itemBuf}  </build>
+</model>`;
+
+  const contentTypes = `<?xml version="1.0" encoding="UTF-8"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/>
+</Types>`;
+  const rels = `<?xml version="1.0" encoding="UTF-8"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Target="/3D/3dmodel.model" Id="rel-1" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/>
+</Relationships>`;
+
+  const zip = new JSZip();
+  zip.file('[Content_Types].xml', contentTypes);
+  zip.folder('_rels').file('.rels', rels);
+  zip.folder('3D').file('3dmodel.model', modelXml);
+  return await zip.generateAsync({
+    type: 'blob', mimeType: 'model/3mf',
+    compression: 'DEFLATE', compressionOptions: { level: 6 }
+  });
+}
+
+// ---------- CHAIN SWING ANIMATION ----------
+// (Disabled — chains now sit still on the plate, like real Lego chains.)
+function updateChainSwing(dt, time) { /* no-op */ }
+
+// ---------- LOOP ----------
+let _lastFrameT = performance.now();
+function animate() {
+  requestAnimationFrame(animate);
+  const now = performance.now();
+  const dt = Math.min(0.05, (now - _lastFrameT) / 1000);
+  _lastFrameT = now;
+  tickGamepad(dt);
+  tickMovement();
+  updateChainSwing(dt, now);
+  updateGhost();
+  renderer.render(scene, camera);
+}
+animate();
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>
