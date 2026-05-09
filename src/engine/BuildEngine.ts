@@ -51,7 +51,7 @@ export class BuildEngine {
     this.occupancy = new OccupancyMap()
 
     this.world = new WorldSystem(this)
-    this.input = new InputSystem()
+    this.input = new InputSystem(this)
     this.placement = new PlacementSystem()
     this.render = new RenderSystem(this)
     this.connector = new ConnectorSystem()
