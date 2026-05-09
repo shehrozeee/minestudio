@@ -1,0 +1,116 @@
+import * as THREE from 'three'
+import { CommandBus } from './commands/Command'
+import { OccupancyMap } from './grid'
+import type { PlacedObject } from './types'
+import { WorldSystem } from './systems/WorldSystem'
+import { InputSystem } from './systems/InputSystem'
+import { PlacementSystem } from './systems/PlacementSystem'
+import { RenderSystem } from './systems/RenderSystem'
+import { ConnectorSystem } from './systems/ConnectorSystem'
+import { CSGSystem } from './systems/CSGSystem'
+import { ValidationSystem } from './systems/ValidationSystem'
+import { ExportSystem } from './systems/ExportSystem'
+import { StorageSystem } from './systems/StorageSystem'
+import { MigrationSystem } from './systems/MigrationSystem'
+
+export class BuildEngine {
+  readonly scene: THREE.Scene
+  readonly camera: THREE.PerspectiveCamera
+  readonly renderer: THREE.WebGLRenderer
+  readonly commandBus: CommandBus
+  readonly occupancy: OccupancyMap
+  readonly objects: PlacedObject[] = []
+
+  readonly world: WorldSystem
+  readonly input: InputSystem
+  readonly placement: PlacementSystem
+  readonly render: RenderSystem
+  readonly connector: ConnectorSystem
+  readonly csg: CSGSystem
+  readonly validation: ValidationSystem
+  readonly exporter: ExportSystem
+  readonly storage: StorageSystem
+  readonly migration: MigrationSystem
+
+  private animFrameId = 0
+  private lastTime = 0
+
+  constructor(canvas: HTMLCanvasElement) {
+    this.scene = new THREE.Scene()
+    this.camera = new THREE.PerspectiveCamera(
+      75,
+      canvas.clientWidth / canvas.clientHeight,
+      0.5,
+      3000
+    )
+    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true })
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    this.renderer.setSize(canvas.clientWidth, canvas.clientHeight, false)
+
+    this.commandBus = new CommandBus()
+    this.occupancy = new OccupancyMap()
+
+    this.world = new WorldSystem(this)
+    this.input = new InputSystem()
+    this.placement = new PlacementSystem()
+    this.render = new RenderSystem()
+    this.connector = new ConnectorSystem()
+    this.csg = new CSGSystem()
+    this.validation = new ValidationSystem()
+    this.exporter = new ExportSystem()
+    this.storage = new StorageSystem()
+    this.migration = new MigrationSystem()
+  }
+
+  init(): void {
+    this.world.init()
+    this.input.init()
+    this.placement.init()
+    this.render.init()
+    this.storage.init()
+    this.exporter.init()
+
+    this.world.setTimeUpdateCallback((t) => {
+      import('../ui/store').then(({ useStore }) => {
+        useStore.getState().setTimeOfDay(t)
+      })
+    })
+
+    window.addEventListener('resize', this.onResize)
+    this.loop(0)
+  }
+
+  private loop = (time: number): void => {
+    this.animFrameId = requestAnimationFrame(this.loop)
+    const dt = Math.min(0.05, (time - this.lastTime) / 1000)
+    this.lastTime = time
+
+    this.input.tick(dt)
+    this.placement.tick(dt)
+    this.render.tick(dt)
+    this.connector.tick(dt)
+    this.world.tick(dt)
+
+    this.renderer.render(this.scene, this.camera)
+  }
+
+  private onResize = (): void => {
+    const canvas = this.renderer.domElement
+    const w = canvas.clientWidth
+    const h = canvas.clientHeight
+    this.camera.aspect = w / h
+    this.camera.updateProjectionMatrix()
+    this.renderer.setSize(w, h, false)
+  }
+
+  dispose(): void {
+    cancelAnimationFrame(this.animFrameId)
+    window.removeEventListener('resize', this.onResize)
+    this.world.dispose()
+    this.input.dispose()
+    this.placement.dispose()
+    this.render.dispose()
+    this.connector.dispose()
+    this.renderer.dispose()
+  }
+}
