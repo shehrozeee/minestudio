@@ -5,6 +5,7 @@ import { snapToGrid, GRID_BASE, SIZE_IN_UNITS } from '../grid'
 import { getBlockDef } from '../registries/blocks'
 import { PlaceCommand } from '../commands/PlaceCommand'
 import { DeleteCommand } from '../commands/DeleteCommand'
+import { PaintCommand } from '../commands/PaintCommand'
 
 const CENTER = new THREE.Vector2(0, 0)
 
@@ -64,11 +65,30 @@ export class PlacementSystem {
 
   private onLeftClick = (): void => {
     if (!this.engine.input.isLocked()) return
-    if (!this.ghostPos) return
     const store = this.getStore()
     if (!store) return
-
     const state = store.useStore.getState()
+
+    if (state.selectedTool === 'paint') {
+      // Paint mode: color the aimed block
+      const hit = this.castRay()
+      if (!hit) return
+      const objectId = hit.object.userData['objectId'] as number | undefined
+      if (typeof objectId !== 'number') return
+      const obj = this.engine.objects.find(o => o.id === objectId)
+      if (!obj) return
+      if (obj.color === state.selectedColor) return  // no-op if same color
+      this.engine.commandBus.execute(new PaintCommand(this.engine, obj, state.selectedColor))
+      return
+    }
+
+    if (state.selectedTool === 'erase') {
+      this.eraseAimed()
+      return
+    }
+
+    // Default: place tool
+    if (!this.ghostPos) return
     const defId = state.hotbarSlots[state.selectedSlot]
     if (!defId) return
     const def = getBlockDef(defId)

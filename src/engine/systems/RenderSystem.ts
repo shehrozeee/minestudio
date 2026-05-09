@@ -61,6 +61,14 @@ export class RenderSystem {
     return this.meshMap.get(id)
   }
 
+  updateColor(id: number, color: string): void {
+    const mesh = this.meshMap.get(id)
+    if (!mesh) return
+    if (mesh.material instanceof THREE.MeshStandardMaterial) {
+      mesh.material.color.set(color)
+    }
+  }
+
   getRaycastTargets(): THREE.Mesh[] {
     return Array.from(this.meshMap.values())
   }

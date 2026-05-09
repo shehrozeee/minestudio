@@ -5,6 +5,7 @@ import { Hotbar } from './components/Hotbar'
 import { HUD } from './components/HUD'
 import { ContextualHints } from './components/ContextualHints'
 import { ToolRing } from './components/ToolRing'
+import { ColorPicker } from './components/ColorPicker'
 
 export function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -34,6 +35,7 @@ export function App() {
           <ContextualHints />
           <Hotbar />
           <ToolRing />
+          <ColorPicker />
         </div>
       )}
     </div>

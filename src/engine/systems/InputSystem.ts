@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js'
 import type { BuildEngine } from '../BuildEngine'
 import { GRID_BASE } from '../grid'
+import { cycleColor } from '../registries/colors'
 
 const WALK_SPEED = 80   // mm/s
 const FLY_SPEED = 120   // mm/s
@@ -81,6 +82,28 @@ export class InputSystem {
         const cur = useStore.getState().selectedSize
         const idx = sizes.indexOf(cur)
         useStore.getState().setSize(sizes[Math.min(2, idx + 1)])
+      })
+    }
+
+    // Color cycle: Q = prev, E = next
+    if (e.code === 'KeyQ') {
+      this.getStore().then(({ useStore }) => {
+        const cur = useStore.getState().selectedColor
+        useStore.getState().setColor(cycleColor(cur, -1))
+      })
+    }
+    if (e.code === 'KeyE') {
+      this.getStore().then(({ useStore }) => {
+        const cur = useStore.getState().selectedColor
+        useStore.getState().setColor(cycleColor(cur, 1))
+      })
+    }
+
+    // P key = toggle paint / place tool
+    if (e.code === 'KeyP') {
+      this.getStore().then(({ useStore }) => {
+        const cur = useStore.getState().selectedTool
+        useStore.getState().setTool(cur === 'paint' ? 'place' : 'paint')
       })
     }
   }
