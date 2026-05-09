@@ -1,0 +1,299 @@
+[    5948ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=d6d070f5:21550
+[    6117ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=d6d070f5:13852
+[    6118ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=d6d070f5:13852
+[    6176ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5173/favicon.ico:0
+[  508895ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=d6d070f5:13852
+[  508896ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=d6d070f5:13852
+[  511618ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=d6d070f5:13852
+[  511618ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=d6d070f5:13852
+[  517305ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=d6d070f5:13852
+[  517305ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=d6d070f5:13852
+[  528304ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=d6d070f5:13852
+[  528304ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=d6d070f5:13852
+[  536540ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=d6d070f5:13852
+[  536540ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=d6d070f5:13852
+[  539983ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=d6d070f5:13852
+[  539983ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=d6d070f5:13852
+[  543027ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=d6d070f5:13852
+[  543027ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=d6d070f5:13852
+[  765732ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=d6d070f5:13852
+[  765732ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=d6d070f5:13852
+[  900952ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:21550
+[  901004ms] TypeError: Cannot destructure property 'camera' of 'this.engine' as it is undefined.
+    at InputSystem.init (http://localhost:5173/src/engine/systems/InputSystem.ts?t=1778341834439:21:13)
+    at BuildEngine.init (http://localhost:5173/src/engine/BuildEngine.ts?t=1778341834439:59:16)
+    at http://localhost:5173/src/ui/App.tsx?t=1778341834439:34:12
+    at commitHookEffectListMount (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:16915:34)
+    at commitPassiveMountOnFiber (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:18156:19)
+    at commitPassiveMountEffects_complete (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:18129:17)
+    at commitPassiveMountEffects_begin (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:18119:15)
+    at commitPassiveMountEffects (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:18109:11)
+    at flushPassiveEffectsImpl (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:19490:11)
+    at flushPassiveEffects (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:19447:22)
+[  901008ms] TypeError: Cannot destructure property 'camera' of 'this.engine' as it is undefined.
+    at InputSystem.init (http://localhost:5173/src/engine/systems/InputSystem.ts?t=1778341834439:21:13)
+    at BuildEngine.init (http://localhost:5173/src/engine/BuildEngine.ts?t=1778341834439:59:16)
+    at http://localhost:5173/src/ui/App.tsx?t=1778341834439:34:12
+    at commitHookEffectListMount (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:16915:34)
+    at invokePassiveEffectMountInDEV (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:18324:19)
+    at invokeEffectsInDev (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:19701:19)
+    at commitDoubleInvokeEffectsInDEV (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:19686:15)
+    at flushPassiveEffectsImpl (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:19503:13)
+    at flushPassiveEffects (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:19447:22)
+    at http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:19328:17
+[  901010ms] [ERROR] The above error occurred in the <App> component:
+
+    at App (http://localhost:5173/src/ui/App.tsx?t=1778341834439:27:21)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries. @ http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:14031
+[  901010ms] [ERROR] The above error occurred in the <App> component:
+
+    at App (http://localhost:5173/src/ui/App.tsx?t=1778341834439:27:21)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries. @ http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:14031
+[  901010ms] TypeError: Cannot destructure property 'camera' of 'this.engine' as it is undefined.
+    at InputSystem.init (http://localhost:5173/src/engine/systems/InputSystem.ts?t=1778341834439:21:13)
+    at BuildEngine.init (http://localhost:5173/src/engine/BuildEngine.ts?t=1778341834439:59:16)
+    at http://localhost:5173/src/ui/App.tsx?t=1778341834439:34:12
+    at commitHookEffectListMount (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:16915:34)
+    at commitPassiveMountOnFiber (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:18156:19)
+    at commitPassiveMountEffects_complete (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:18129:17)
+    at commitPassiveMountEffects_begin (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:18119:15)
+    at commitPassiveMountEffects (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:18109:11)
+    at flushPassiveEffectsImpl (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:19490:11)
+    at flushPassiveEffects (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:19447:22)
+[  901996ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=a43f6669:13852
+[  901996ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=a43f6669:13852
+[ 1129959ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=a43f6669:13852
+[ 1129960ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=a43f6669:13852
+[ 1132770ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=a43f6669:13852
+[ 1132770ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=a43f6669:13852
+[ 1135160ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=a43f6669:13852
+[ 1135160ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=a43f6669:13852
+[ 1138261ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=a43f6669:13852
+[ 1138261ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=a43f6669:13852
+[ 1174273ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=a43f6669:13852
+[ 1174274ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=a43f6669:13852
+[ 1447179ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=a43f6669:13852
+[ 1447179ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=a43f6669:13852
+[ 1455493ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=a43f6669:13852
+[ 1455493ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=a43f6669:13852
+[ 1468025ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=a43f6669:13852
+[ 1468025ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=a43f6669:13852
+[ 1473067ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=a43f6669:13852
+[ 1473068ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=a43f6669:13852
+[ 1477286ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=a43f6669:13852
+[ 1477286ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=a43f6669:13852
+[ 1480427ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=a43f6669:13852
+[ 1480427ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=a43f6669:13852
+[ 1491691ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=a43f6669:13852
+[ 1491691ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=a43f6669:13852
+[ 1491693ms] TypeError: Cannot read properties of undefined (reading 'commandBus')
+    at StorageSystem.init (http://localhost:5173/src/engine/systems/StorageSystem.ts?t=1778342426809:11:17)
+    at BuildEngine.init (http://localhost:5173/src/engine/BuildEngine.ts?t=1778342426809:66:18)
+    at http://localhost:5173/src/ui/App.tsx?t=1778342426809:34:12
+    at commitHookEffectListMount (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:16915:34)
+    at commitPassiveMountOnFiber (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:18156:19)
+    at commitPassiveMountEffects_complete (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:18129:17)
+    at commitPassiveMountEffects_begin (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:18119:15)
+    at commitPassiveMountEffects (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:18109:11)
+    at flushPassiveEffectsImpl (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:19490:11)
+    at flushPassiveEffects (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:19447:22)
+[ 1491697ms] [ERROR] The above error occurred in the <App> component:
+
+    at App (http://localhost:5173/src/ui/App.tsx?t=1778342426809:27:21)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries. @ http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:14031
+[ 1491698ms] TypeError: Cannot read properties of undefined (reading 'commandBus')
+    at StorageSystem.init (http://localhost:5173/src/engine/systems/StorageSystem.ts?t=1778342426809:11:17)
+    at BuildEngine.init (http://localhost:5173/src/engine/BuildEngine.ts?t=1778342426809:66:18)
+    at http://localhost:5173/src/ui/App.tsx?t=1778342426809:34:12
+    at commitHookEffectListMount (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:16915:34)
+    at commitPassiveMountOnFiber (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:18156:19)
+    at commitPassiveMountEffects_complete (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:18129:17)
+    at commitPassiveMountEffects_begin (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:18119:15)
+    at commitPassiveMountEffects (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:18109:11)
+    at flushPassiveEffectsImpl (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:19490:11)
+    at flushPassiveEffects (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:19447:22)
+[ 1494503ms] TypeError: Cannot read properties of undefined (reading 'commandBus')
+    at StorageSystem.init (http://localhost:5173/src/engine/systems/StorageSystem.ts?t=1778342426809:11:17)
+    at BuildEngine.init (http://localhost:5173/src/engine/BuildEngine.ts?t=1778342426809:66:18)
+    at http://localhost:5173/src/ui/App.tsx?t=1778342429595:34:12
+    at commitHookEffectListMount (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:16915:34)
+    at commitPassiveMountOnFiber (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:18156:19)
+    at commitPassiveMountEffects_complete (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:18129:17)
+    at commitPassiveMountEffects_begin (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:18119:15)
+    at commitPassiveMountEffects (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:18109:11)
+    at flushPassiveEffectsImpl (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:19490:11)
+    at flushPassiveEffects (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:19447:22)
+[ 1494506ms] TypeError: Cannot read properties of undefined (reading 'commandBus')
+    at StorageSystem.init (http://localhost:5173/src/engine/systems/StorageSystem.ts?t=1778342426809:11:17)
+    at BuildEngine.init (http://localhost:5173/src/engine/BuildEngine.ts?t=1778342426809:66:18)
+    at http://localhost:5173/src/ui/App.tsx?t=1778342429595:34:12
+    at commitHookEffectListMount (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:16915:34)
+    at invokePassiveEffectMountInDEV (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:18324:19)
+    at invokeEffectsInDev (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:19701:19)
+    at commitDoubleInvokeEffectsInDEV (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:19686:15)
+    at flushPassiveEffectsImpl (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:19503:13)
+    at flushPassiveEffects (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:19447:22)
+    at commitRootImpl (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:19416:13)
+[ 1494508ms] [ERROR] The above error occurred in the <App> component:
+
+    at App (http://localhost:5173/src/ui/App.tsx?t=1778342429595:27:21)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries. @ http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:14031
+[ 1494508ms] [ERROR] The above error occurred in the <App> component:
+
+    at App (http://localhost:5173/src/ui/App.tsx?t=1778342429595:27:21)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries. @ http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:14031
+[ 1494508ms] TypeError: Cannot read properties of undefined (reading 'commandBus')
+    at StorageSystem.init (http://localhost:5173/src/engine/systems/StorageSystem.ts?t=1778342426809:11:17)
+    at BuildEngine.init (http://localhost:5173/src/engine/BuildEngine.ts?t=1778342426809:66:18)
+    at http://localhost:5173/src/ui/App.tsx?t=1778342429595:34:12
+    at commitHookEffectListMount (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:16915:34)
+    at commitPassiveMountOnFiber (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:18156:19)
+    at commitPassiveMountEffects_complete (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:18129:17)
+    at commitPassiveMountEffects_begin (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:18119:15)
+    at commitPassiveMountEffects (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:18109:11)
+    at flushPassiveEffectsImpl (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:19490:11)
+    at flushPassiveEffects (http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=a43f6669:19447:22)
+[ 1495242ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=a43f6669:13852
+[ 1495242ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=a43f6669:13852
+[ 1498031ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=a43f6669:13852
+[ 1498031ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=a43f6669:13852
+[ 1498972ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=a43f6669:13852
+[ 1498972ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=a43f6669:13852
+[ 1573519ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=a43f6669:13852
+[ 1573519ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=a43f6669:13852
+[ 1586348ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=8aba0c4a:21550
+[ 1586428ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=8aba0c4a:13852
+[ 1586428ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=8aba0c4a:13852
+[ 1593754ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=8aba0c4a:13852
+[ 1593755ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=8aba0c4a:13852
+[ 1781504ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=8aba0c4a:13852
+[ 1781504ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=8aba0c4a:13852
+[ 1785815ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=8aba0c4a:13852
+[ 1785815ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=8aba0c4a:13852
+[ 1806466ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=8aba0c4a:13852
+[ 1806466ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=8aba0c4a:13852
+[ 1810244ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=8aba0c4a:13852
+[ 1810245ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=8aba0c4a:13852
+[ 1817782ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=8aba0c4a:13852
+[ 1817782ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=8aba0c4a:13852
+[ 1821613ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=8aba0c4a:13852
+[ 1821613ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=8aba0c4a:13852
+[ 1824838ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=8aba0c4a:13852
+[ 1824838ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=8aba0c4a:13852
+[ 1830613ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=8aba0c4a:13852
+[ 1830614ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=8aba0c4a:13852
+[ 1834494ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=8aba0c4a:13852
+[ 1834494ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=8aba0c4a:13852
+[ 1839310ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=8aba0c4a:13852
+[ 1839310ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=8aba0c4a:13852
+[ 1857846ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=8aba0c4a:13852
+[ 1857846ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=8aba0c4a:13852
+[ 1871845ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=8aba0c4a:13852
+[ 1871846ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=8aba0c4a:13852
+[ 1886154ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=8aba0c4a:13852
+[ 1886154ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=8aba0c4a:13852
+[ 1897680ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=8aba0c4a:13852
+[ 1897680ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=8aba0c4a:13852
+[ 1959707ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=8aba0c4a:13852
+[ 1959707ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=8aba0c4a:13852
+[ 2332069ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=8aba0c4a:13852
+[ 2332069ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=8aba0c4a:13852
+[ 2335627ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=8aba0c4a:13852
+[ 2335627ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=8aba0c4a:13852
+[ 2340224ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-TYILIMWK.js?v=95e1084a:21550
+[ 2340309ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=95e1084a:13852
+[ 2340309ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=95e1084a:13852
+[ 2342409ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=95e1084a:13852
+[ 2342409ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=95e1084a:13852
+[ 2349420ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=95e1084a:13852
+[ 2349420ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=95e1084a:13852
+[ 2354196ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=95e1084a:13852
+[ 2354196ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=95e1084a:13852
+[ 2371684ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=95e1084a:13852
+[ 2371685ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=95e1084a:13852
+[ 2375792ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=95e1084a:13852
+[ 2375793ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=95e1084a:13852
+[ 2385431ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=95e1084a:13852
+[ 2385431ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=95e1084a:13852
+[ 2471235ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=95e1084a:13852
+[ 2471235ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=95e1084a:13852
+[ 2475451ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=95e1084a:13852
+[ 2475452ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=95e1084a:13852
+[ 3703268ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=95e1084a:13852
+[ 3703268ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=95e1084a:13852
+[ 3723460ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=95e1084a:13852
+[ 3723460ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=95e1084a:13852
+[ 3728843ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=95e1084a:13852
+[ 3728843ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=95e1084a:13852
+[ 3876542ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-ZYYRC4UE.js?v=0120c320:21550
+[ 3876646ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 3876646ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5171033ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5171034ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5177231ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5177231ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5187592ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5187592ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5343750ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5343750ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5348575ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5348576ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5358363ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5358363ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5461482ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5461483ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5491405ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5491405ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5506434ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5506435ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5532632ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5532632ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5545295ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5545295ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5552753ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5552753ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5563954ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5563954ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5569837ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5569838ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5581116ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5581117ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5588641ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5588641ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5595449ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5595449ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5613626ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5613626ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5618160ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5618160ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5620965ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5620965ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5629350ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5629350ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5650226ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5650226ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5679296ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5679296ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5714226ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5714226ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5726679ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-ZYYRC4UE.js?v=0120c320:21550
+[ 5726778ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5726778ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5771801ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 5771801ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 6003480ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 6003481ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 6009249ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 6009249ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 6039262ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852
+[ 6039263ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5173/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=0120c320:13852

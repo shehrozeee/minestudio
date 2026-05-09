@@ -1,0 +1,6 @@
+- generic [ref=e3]:
+  - generic:
+    - generic:
+      - generic: XYZ0mm, 28mm, 128mm
+      - generic: SHAPES0
+      - generic: TOOLplace

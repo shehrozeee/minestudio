@@ -1,0 +1,54 @@
+[     214ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:5174/node_modules/.vite/deps/chunk-EJTTOCY5.js?v=697743b2:21550
+[     342ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5174/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=697743b2:13852
+[     342ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5174/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=697743b2:13852
+[     379ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5174/favicon.ico:0
+[21016765ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5174/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=697743b2:13852
+[21016765ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5174/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=697743b2:13852
+[21022260ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5174/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=697743b2:13852
+[21022260ms] [WARNING] WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures @ http://localhost:5174/node_modules/.vite/deps/chunk-UZOV2HZI.js?v=697743b2:13852
+[21033451ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:5174/node_modules/.vite/deps/chunk-EJTTOCY5.js?v=8196c40d:21550
+[21033488ms] TypeError: this.updateSky is not a function
+    at WorldSystem.init (http://localhost:5174/src/engine/systems/WorldSystem.ts?t=1778370691538:41:10)
+    at BuildEngine.init (http://localhost:5174/src/engine/BuildEngine.ts?t=1778370691538:67:16)
+    at http://localhost:5174/src/ui/App.tsx?t=1778370691538:48:12
+    at commitHookEffectListMount (http://localhost:5174/node_modules/.vite/deps/chunk-EJTTOCY5.js?v=8196c40d:16915:34)
+    at commitPassiveMountOnFiber (http://localhost:5174/node_modules/.vite/deps/chunk-EJTTOCY5.js?v=8196c40d:18156:19)
+    at commitPassiveMountEffects_complete (http://localhost:5174/node_modules/.vite/deps/chunk-EJTTOCY5.js?v=8196c40d:18129:17)
+    at commitPassiveMountEffects_begin (http://localhost:5174/node_modules/.vite/deps/chunk-EJTTOCY5.js?v=8196c40d:18119:15)
+    at commitPassiveMountEffects (http://localhost:5174/node_modules/.vite/deps/chunk-EJTTOCY5.js?v=8196c40d:18109:11)
+    at flushPassiveEffectsImpl (http://localhost:5174/node_modules/.vite/deps/chunk-EJTTOCY5.js?v=8196c40d:19490:11)
+    at flushPassiveEffects (http://localhost:5174/node_modules/.vite/deps/chunk-EJTTOCY5.js?v=8196c40d:19447:22)
+[21033492ms] TypeError: this.updateSky is not a function
+    at WorldSystem.init (http://localhost:5174/src/engine/systems/WorldSystem.ts?t=1778370691538:41:10)
+    at BuildEngine.init (http://localhost:5174/src/engine/BuildEngine.ts?t=1778370691538:67:16)
+    at http://localhost:5174/src/ui/App.tsx?t=1778370691538:48:12
+    at commitHookEffectListMount (http://localhost:5174/node_modules/.vite/deps/chunk-EJTTOCY5.js?v=8196c40d:16915:34)
+    at invokePassiveEffectMountInDEV (http://localhost:5174/node_modules/.vite/deps/chunk-EJTTOCY5.js?v=8196c40d:18324:19)
+    at invokeEffectsInDev (http://localhost:5174/node_modules/.vite/deps/chunk-EJTTOCY5.js?v=8196c40d:19701:19)
+    at commitDoubleInvokeEffectsInDEV (http://localhost:5174/node_modules/.vite/deps/chunk-EJTTOCY5.js?v=8196c40d:19686:15)
+    at flushPassiveEffectsImpl (http://localhost:5174/node_modules/.vite/deps/chunk-EJTTOCY5.js?v=8196c40d:19503:13)
+    at flushPassiveEffects (http://localhost:5174/node_modules/.vite/deps/chunk-EJTTOCY5.js?v=8196c40d:19447:22)
+    at http://localhost:5174/node_modules/.vite/deps/chunk-EJTTOCY5.js?v=8196c40d:19328:17
+[21033494ms] [ERROR] The above error occurred in the <App> component:
+
+    at App (http://localhost:5174/src/ui/App.tsx?t=1778370691538:36:21)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries. @ http://localhost:5174/node_modules/.vite/deps/chunk-EJTTOCY5.js?v=8196c40d:14031
+[21033494ms] [ERROR] The above error occurred in the <App> component:
+
+    at App (http://localhost:5174/src/ui/App.tsx?t=1778370691538:36:21)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries. @ http://localhost:5174/node_modules/.vite/deps/chunk-EJTTOCY5.js?v=8196c40d:14031
+[21033494ms] TypeError: this.updateSky is not a function
+    at WorldSystem.init (http://localhost:5174/src/engine/systems/WorldSystem.ts?t=1778370691538:41:10)
+    at BuildEngine.init (http://localhost:5174/src/engine/BuildEngine.ts?t=1778370691538:67:16)
+    at http://localhost:5174/src/ui/App.tsx?t=1778370691538:48:12
+    at commitHookEffectListMount (http://localhost:5174/node_modules/.vite/deps/chunk-EJTTOCY5.js?v=8196c40d:16915:34)
+    at commitPassiveMountOnFiber (http://localhost:5174/node_modules/.vite/deps/chunk-EJTTOCY5.js?v=8196c40d:18156:19)
+    at commitPassiveMountEffects_complete (http://localhost:5174/node_modules/.vite/deps/chunk-EJTTOCY5.js?v=8196c40d:18129:17)
+    at commitPassiveMountEffects_begin (http://localhost:5174/node_modules/.vite/deps/chunk-EJTTOCY5.js?v=8196c40d:18119:15)
+    at commitPassiveMountEffects (http://localhost:5174/node_modules/.vite/deps/chunk-EJTTOCY5.js?v=8196c40d:18109:11)
+    at flushPassiveEffectsImpl (http://localhost:5174/node_modules/.vite/deps/chunk-EJTTOCY5.js?v=8196c40d:19490:11)
+    at flushPassiveEffects (http://localhost:5174/node_modules/.vite/deps/chunk-EJTTOCY5.js?v=8196c40d:19447:22)

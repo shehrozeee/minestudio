@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { Sky } from 'three/examples/jsm/objects/Sky.js'
 import type { BuildEngine } from '../BuildEngine'
 import type { PlacedObject } from '../types'
 import { GRID_BASE, toWorld } from '../grid'
@@ -12,6 +13,8 @@ export class WorldSystem {
   private engine: BuildEngine
   private hemi!: THREE.HemisphereLight
   private sun!: THREE.DirectionalLight
+  private sky!: Sky
+  private sunDir = new THREE.Vector3()
   private dayTime = 0.25
   private onTimeUpdate?: (t: number) => void
   private scene!: THREE.Scene
@@ -30,15 +33,28 @@ export class WorldSystem {
     const { scene, camera } = this.engine
     this.scene = scene
 
-    scene.background = new THREE.Color(0x88bbe8)
+    // Sky shader — Rayleigh/Mie atmospheric scattering
+    this.sky = new Sky()
+    this.sky.scale.setScalar(10000)
+    scene.add(this.sky)
+
+    const skyUniforms = this.sky.material.uniforms
+    skyUniforms['turbidity'].value = 4
+    skyUniforms['rayleigh'].value = 0.8
+    skyUniforms['mieCoefficient'].value = 0.005
+    skyUniforms['mieDirectionalG'].value = 0.92
+
     scene.fog = new THREE.Fog(0xa8c8e8, 400, 1500)
 
-    this.hemi = new THREE.HemisphereLight(0xddeeff, 0x665544, 0.9)
+    this.hemi = new THREE.HemisphereLight(0xddeeff, 0x443322, 0.6)
     scene.add(this.hemi)
 
-    this.sun = new THREE.DirectionalLight(0xffffff, 1.0)
-    this.sun.position.set(200, 400, 250)
+    this.sun = new THREE.DirectionalLight(0xfffbe8, 1.4)
+    this.sun.castShadow = false
     scene.add(this.sun)
+
+    // Set initial sun position
+    this.updateSky()
 
     this.buildPlate()
 
@@ -106,24 +122,44 @@ export class WorldSystem {
     scene.add(ground)
   }
 
+  private updateSky(): void {
+    // dayTime 0=midnight, 0.25=sunrise, 0.5=noon, 0.75=sunset, 1=midnight
+    const angle = this.dayTime * Math.PI * 2 - Math.PI / 2
+    const elevation = Math.sin(angle)  // -1 to 1
+    const azimuth = Math.cos(angle)
+
+    // Sun direction for Sky shader (elevation above horizon in radians)
+    const phi = THREE.MathUtils.degToRad(90 - elevation * 90)
+    const theta = Math.atan2(azimuth, 1)
+    this.sunDir.setFromSphericalCoords(1, phi, theta)
+
+    this.sky.material.uniforms['sunPosition'].value.copy(this.sunDir)
+    this.sun.position.copy(this.sunDir).multiplyScalar(500)
+
+    const dayFactor = Math.max(0, elevation)
+    const duskFactor = Math.max(0, 1 - Math.abs(elevation) * 3)  // peaks at horizon
+
+    this.sun.intensity = 0.05 + dayFactor * 1.8
+    this.sun.color.setHSL(0.1 - duskFactor * 0.05, 0.8 + duskFactor * 0.2, 0.5 + dayFactor * 0.5)
+    this.hemi.intensity = 0.1 + dayFactor * 0.7
+    this.hemi.color.setHSL(0.6 - duskFactor * 0.1, 0.5, 0.5 + dayFactor * 0.3)
+
+    // Night sky — darken scene background via fog color
+    const nightFog = new THREE.Color(0x0a0a18)
+    const dayFog = new THREE.Color(0xa8c8e8)
+    const fogColor = nightFog.clone().lerp(dayFog, dayFactor)
+    if (this.engine.scene.fog instanceof THREE.Fog) {
+      this.engine.scene.fog.color.copy(fogColor)
+    }
+
+    // Night: dim sky shader turbidity to simulate stars (Sky fades to black naturally)
+    this.sky.material.uniforms['rayleigh'].value = 0.1 + dayFactor * 0.7
+    this.sky.material.uniforms['turbidity'].value = 1 + dayFactor * 5
+  }
+
   tick(dt: number): void {
     this.dayTime = (this.dayTime + dt / 60) % 1
-
-    const angle = this.dayTime * Math.PI * 2 - Math.PI / 2
-    const sunX = Math.cos(angle) * 500
-    const sunY = Math.sin(angle) * 500
-    this.sun.position.set(sunX, sunY, 200)
-
-    const dayFactor = Math.max(0, Math.sin(angle))
-    const skyColor = new THREE.Color().lerpColors(
-      new THREE.Color(0x0a0a1a),
-      new THREE.Color(0x88bbe8),
-      dayFactor
-    )
-    this.engine.scene.background = skyColor
-    this.sun.intensity = dayFactor * 1.2
-    this.hemi.intensity = 0.3 + dayFactor * 0.6
-
+    this.updateSky()
     this.onTimeUpdate?.(this.dayTime)
   }
 
