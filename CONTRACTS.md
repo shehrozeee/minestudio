@@ -47,8 +47,22 @@ Every exported symbol is listed here. Agents must check this file before importi
 - `WorldSystem` (class)
 - `PLAYER_HEIGHT` (const = 28)
 
-## src/engine/systems/*.ts
-- `InputSystem`, `PlacementSystem`, `RenderSystem`, `ConnectorSystem`, `CSGSystem`, `ValidationSystem`, `ExportSystem`, `StorageSystem`, `MigrationSystem`, `ImportSystem`
+## src/engine/systems/InputSystem.ts
+- `InputSystem` (class)
+  - `init(): void` — sets up keyboard, mouse wheel, gamepad listeners, PointerLockControls
+  - `tick(dt: number): void` — calls `tickGamepad(dt)`, then handles keyboard movement
+  - `tickGamepad(dt: number): void` — polls `navigator.getGamepads()`, maps Xbox standard layout to engine actions (left stick = move, right stick = look, RT = place, LT = delete, A = fly, B = double-tap fly, X = next color, Y = size cycle, LB/RB = hotbar, D-pad, back = undo, start = controls)
+  - `isLocked(): boolean` — returns whether PointerLockControls is locked
+  - `dispose(): void`
+
+## src/engine/systems/*.ts (other systems)
+- `PlacementSystem`, `RenderSystem`, `ConnectorSystem`, `CSGSystem`, `ValidationSystem`, `StorageSystem`, `MigrationSystem`, `ImportSystem`
+
+## src/engine/systems/ExportSystem.ts
+- `ExportSystem` (class)
+  - `init(): void` — registers Ctrl+Shift+E shortcut
+  - `exportSTL(): void` — single merged STL of all printable objects
+  - `exportSTLZip(): Promise<void>` — multi-body zip: groups objects by `bodyName`, one `.stl` per group, packaged as `.zip` via JSZip
 
 ## src/engine/systems/ImportSystem.ts
 - `ImportSystem` (class)

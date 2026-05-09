@@ -15,9 +15,13 @@ export function HUD({ engine }: { engine?: BuildEngine }) {
   const negativeMode = useStore(s => s.negativeMode)
   const hotbarSlots = useStore(s => s.hotbarSlots)
   const selectedSlot = useStore(s => s.selectedSlot)
+  const bodyList = useStore(s => s.bodyList)
+  const warnings = useStore(s => s.validationWarnings)
   const def = getBlockDef(hotbarSlots[selectedSlot] ?? 'cube')
 
   const mm = (g: number) => `${Math.round(g * 2)}mm`
+  const warnCount = warnings.filter(w => w.type === 'warning').length
+  const errCount  = warnings.filter(w => w.type === 'error').length
 
   return (
     <div style={{
@@ -47,16 +51,25 @@ export function HUD({ engine }: { engine?: BuildEngine }) {
         <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 3, background: color, border: '1px solid #444' }} />
       </span>
       <span><span style={{ color: '#8b8f97' }}>SHAPES </span>{count}</span>
+      {bodyList.length > 0 && (
+        <span><span style={{ color: '#8b8f97' }}>BODIES </span>{bodyList.length}</span>
+      )}
       {fly && <span style={{ color: '#4da6ff' }}>FLY</span>}
       {negativeMode && <span style={{ color: '#ff4040' }}>NEG</span>}
       {csg && (
         <span
-          title="Ctrl+Shift+B"
+          title="Ctrl+Shift+B — bake CSG preview"
           onClick={() => engine && void engine.csg.bakePreview()}
-          style={{ color: '#ff9f40', cursor: engine ? 'pointer' : 'default' }}
+          style={{ color: '#ff9f40', cursor: engine ? 'pointer' : 'default', pointerEvents: engine ? 'auto' : 'none' }}
         >
           CSG⏳
         </span>
+      )}
+      {errCount > 0 && (
+        <span title={`${errCount} export error(s)`} style={{ color: '#ff4040' }}>⛔{errCount}</span>
+      )}
+      {warnCount > 0 && errCount === 0 && (
+        <span title={`${warnCount} floating block warning(s)`} style={{ color: '#ff9f40' }}>⚠{warnCount}</span>
       )}
       <span style={{ color: undo ? '#00d563' : '#3a3f47' }}>↩</span>
       <span style={{ color: redo ? '#00d563' : '#3a3f47' }}>↪</span>
