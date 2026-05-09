@@ -12,6 +12,8 @@ import { ValidationSystem } from './systems/ValidationSystem'
 import { ExportSystem } from './systems/ExportSystem'
 import { StorageSystem } from './systems/StorageSystem'
 import { MigrationSystem } from './systems/MigrationSystem'
+import { ImportSystem } from './systems/ImportSystem'
+import { useStore } from '../ui/store'
 
 export class BuildEngine {
   readonly scene: THREE.Scene
@@ -20,6 +22,7 @@ export class BuildEngine {
   readonly commandBus: CommandBus
   readonly occupancy: OccupancyMap
   readonly objects: PlacedObject[] = []
+  readonly store = useStore
 
   readonly world: WorldSystem
   readonly input: InputSystem
@@ -31,6 +34,7 @@ export class BuildEngine {
   readonly exporter: ExportSystem
   readonly storage: StorageSystem
   readonly migration: MigrationSystem
+  readonly importSystem: ImportSystem
 
   private animFrameId = 0
   private lastTime = 0
@@ -61,6 +65,7 @@ export class BuildEngine {
     this.exporter = new ExportSystem(this)
     this.migration = new MigrationSystem()
     this.storage = new StorageSystem(this)
+    this.importSystem = new ImportSystem()
   }
 
   getNextId(): number { return this.nextId++ }

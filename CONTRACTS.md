@@ -48,4 +48,17 @@ Every exported symbol is listed here. Agents must check this file before importi
 - `PLAYER_HEIGHT` (const = 28)
 
 ## src/engine/systems/*.ts
-- `InputSystem`, `PlacementSystem`, `RenderSystem`, `ConnectorSystem`, `CSGSystem`, `ValidationSystem`, `ExportSystem`, `StorageSystem`, `MigrationSystem`
+- `InputSystem`, `PlacementSystem`, `RenderSystem`, `ConnectorSystem`, `CSGSystem`, `ValidationSystem`, `ExportSystem`, `StorageSystem`, `MigrationSystem`, `ImportSystem`
+
+## src/engine/systems/ImportSystem.ts
+- `ImportSystem` (class)
+  - `static normalizeToGrid(geometry: BufferGeometry, maxCells?: number): GridPos[]`
+  - `static importSTL(buffer: ArrayBuffer): PlacedObject[]`
+  - `static importGLB(buffer: ArrayBuffer): Promise<PlacedObject[]>`
+  - `triggerImport(engine: BuildEngine): void` — opens file picker, runs BulkPlaceCommand
+
+## src/engine/commands/BulkPlaceCommand.ts
+- `BulkPlaceCommand` (class, implements `Command`)
+  - `constructor(objects: PlacedObject[], engine: BuildEngine)`
+  - `execute(): void` — pushes all objects to store, registers in occupancy, calls render.sync
+  - `undo(): void` — removes all objects from store, unregisters from occupancy, calls render.sync

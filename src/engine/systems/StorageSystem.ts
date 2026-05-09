@@ -1,5 +1,7 @@
 import type { BuildEngine } from '../BuildEngine'
 import type { SaveFile } from '../types'
+import { ImportSystem } from './ImportSystem'
+import { BulkPlaceCommand } from '../commands/BulkPlaceCommand'
 
 const AUTO_SAVE_KEY = 'minestudio_autosave'
 const CURRENT_VERSION = 1
@@ -111,17 +113,44 @@ export class StorageSystem {
   private onDrop = (e: DragEvent): void => {
     e.preventDefault()
     const file = e.dataTransfer?.files[0]
-    if (!file || !file.name.endsWith('.minstudio')) return
-    const reader = new FileReader()
-    reader.onload = (ev) => {
-      try {
-        const data = JSON.parse(ev.target?.result as string) as unknown
-        this.restoreFromSave(data)
-      } catch {
-        // invalid file
+    if (!file) return
+
+    const name = file.name.toLowerCase()
+
+    if (name.endsWith('.minstudio')) {
+      const reader = new FileReader()
+      reader.onload = (ev) => {
+        try {
+          const data = JSON.parse(ev.target?.result as string) as unknown
+          this.restoreFromSave(data)
+        } catch {
+          // invalid file
+        }
       }
+      reader.readAsText(file)
+      return
     }
-    reader.readAsText(file)
+
+    if (name.endsWith('.stl')) {
+      file.arrayBuffer().then((buffer) => {
+        const blocks = ImportSystem.importSTL(buffer)
+        if (blocks.length > 0) {
+          this.engine.commandBus.execute(new BulkPlaceCommand(blocks, this.engine))
+        }
+      }).catch(() => {})
+      return
+    }
+
+    if (name.endsWith('.glb')) {
+      file.arrayBuffer().then((buffer) => {
+        return ImportSystem.importGLB(buffer)
+      }).then((blocks) => {
+        if (blocks.length > 0) {
+          this.engine.commandBus.execute(new BulkPlaceCommand(blocks, this.engine))
+        }
+      }).catch(() => {})
+      return
+    }
   }
 
   dispose(): void {

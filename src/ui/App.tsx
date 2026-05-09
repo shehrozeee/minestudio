@@ -18,7 +18,17 @@ export function App() {
     engineRef.current = engine
     engine.init()
     setReady(true)
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.code === 'KeyI') {
+        e.preventDefault()
+        engine.importSystem.triggerImport(engine)
+      }
+    }
+    document.addEventListener('keydown', onKeyDown)
+
     return () => {
+      document.removeEventListener('keydown', onKeyDown)
       engine.dispose()
       engineRef.current = null
     }
