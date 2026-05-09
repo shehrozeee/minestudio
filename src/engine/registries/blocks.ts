@@ -88,6 +88,51 @@ export const BLOCK_REGISTRY: BlockDef[] = [
       return geo
     },
   },
+  {
+    id: 'ball-joint',
+    label: 'Ball Joint',
+    category: 'connector',
+    isPrintable: true,
+    exportBehavior: 'isolated',
+    availableSizes: ['normal', 'large', 'xl'],
+    makeGeometry: (s) => {
+      // Simplified: just a sphere (ball) for Phase 4A
+      return new THREE.SphereGeometry(s * 0.4, 14, 10)
+    },
+  },
+  {
+    id: 'socket',
+    label: 'Socket',
+    category: 'connector',
+    isPrintable: true,
+    exportBehavior: 'isolated',
+    availableSizes: ['normal', 'large', 'xl'],
+    makeGeometry: (s) => {
+      // Cup: outer torus-like ring
+      return new THREE.TorusGeometry(s * 0.28, s * 0.08, 8, 16)
+    },
+  },
+  {
+    id: 'peg',
+    label: 'Peg',
+    category: 'connector',
+    isPrintable: true,
+    exportBehavior: 'isolated',
+    availableSizes: ['normal', 'large', 'xl'],
+    makeGeometry: (s) => new THREE.CylinderGeometry(s * 0.12, s * 0.12, s * 0.8, 12),
+  },
+  {
+    id: 'slot',
+    label: 'Slot',
+    category: 'connector',
+    isPrintable: true,
+    exportBehavior: 'isolated',
+    availableSizes: ['normal', 'large', 'xl'],
+    makeGeometry: (s) => {
+      // Rectangular slot as a thin flat box with notch
+      return new THREE.BoxGeometry(s * 0.3, s * 0.8, s * 0.3)
+    },
+  },
 ]
 
 export function getBlockDef(id: string): BlockDef | undefined {
@@ -95,5 +140,5 @@ export function getBlockDef(id: string): BlockDef | undefined {
 }
 
 export const DEFAULT_HOTBAR: string[] = [
-  'cube', 'slab', 'sphere', 'cylinder', 'cone', 'torus', 'wedge', 'cube', 'cube',
+  'cube', 'slab', 'sphere', 'cylinder', 'cone', 'ball-joint', 'peg', 'socket', 'slot',
 ]
