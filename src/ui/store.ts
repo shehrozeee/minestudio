@@ -19,6 +19,8 @@ interface StoreActions {
   setCsgPending: (pending: boolean) => void
   setMateStep: (step: 0 | 1 | 2) => void
   setSelectedBlockDefId: (id: string) => void
+  setHotbarSlot: (slot: number) => void
+  setHotbarSlots: (slots: string[]) => void
 }
 
 type Store = AppState & StoreActions
@@ -45,6 +47,8 @@ const initialState: AppState = {
   bodyList: [],
   validationWarnings: [],
   csgPending: false,
+  hotbarSlots: ['cube', 'slab', 'sphere', 'cylinder', 'cone', 'torus', 'wedge', 'cube', 'cube'],
+  selectedSlot: 0,
 }
 
 export const useStore = create<Store>()((set) => ({
@@ -68,6 +72,8 @@ export const useStore = create<Store>()((set) => ({
   setCsgPending: (csgPending) => set({ csgPending }),
   setMateStep: (mateStep) => set({ mateStep }),
   setSelectedBlockDefId: (selectedBlockDefId) => set({ selectedBlockDefId }),
+  setHotbarSlot: (selectedSlot) => set({ selectedSlot }),
+  setHotbarSlots: (hotbarSlots) => set({ hotbarSlots }),
 }))
 
 export function resetStore(): void {

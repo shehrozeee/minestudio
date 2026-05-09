@@ -53,7 +53,7 @@ export class BuildEngine {
     this.world = new WorldSystem(this)
     this.input = new InputSystem()
     this.placement = new PlacementSystem()
-    this.render = new RenderSystem()
+    this.render = new RenderSystem(this)
     this.connector = new ConnectorSystem()
     this.csg = new CSGSystem()
     this.validation = new ValidationSystem()
@@ -76,8 +76,22 @@ export class BuildEngine {
       })
     })
 
+    this.commandBus.onChange(({ canUndo, canRedo }) => {
+      this.render.sync(this.objects)
+      import('../ui/store').then(({ useStore }) => {
+        useStore.getState().setUndoState({ canUndo, canRedo })
+        useStore.getState().setObjectCount(
+          this.objects.filter(o => o.isPrintable).length
+        )
+      })
+    })
+
     window.addEventListener('resize', this.onResize)
     this.loop(0)
+  }
+
+  sync(): void {
+    this.render.sync(this.objects)
   }
 
   private loop = (time: number): void => {
