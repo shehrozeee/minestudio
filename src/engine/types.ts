@@ -107,6 +107,7 @@ export interface AppState {
   bodyList: BodyDef[]
   validationWarnings: ValidationWarning[]
   csgPending: boolean
+  negativeMode: boolean
   hotbarSlots: string[]
   selectedSlot: number
 }

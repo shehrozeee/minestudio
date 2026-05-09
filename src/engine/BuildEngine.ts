@@ -56,7 +56,7 @@ export class BuildEngine {
     this.placement = new PlacementSystem(this)
     this.render = new RenderSystem(this)
     this.connector = new ConnectorSystem(this)
-    this.csg = new CSGSystem()
+    this.csg = new CSGSystem(this)
     this.validation = new ValidationSystem(this)
     this.exporter = new ExportSystem(this)
     this.migration = new MigrationSystem()

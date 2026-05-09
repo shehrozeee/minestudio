@@ -11,6 +11,7 @@ export function HUD() {
   const redo = useStore(s => s.redoAvailable)
   const fly = useStore(s => s.flyMode)
   const csg = useStore(s => s.csgPending)
+  const negativeMode = useStore(s => s.negativeMode)
   const hotbarSlots = useStore(s => s.hotbarSlots)
   const selectedSlot = useStore(s => s.selectedSlot)
   const def = getBlockDef(hotbarSlots[selectedSlot] ?? 'cube')
@@ -46,6 +47,7 @@ export function HUD() {
       </span>
       <span><span style={{ color: '#8b8f97' }}>SHAPES </span>{count}</span>
       {fly && <span style={{ color: '#4da6ff' }}>FLY</span>}
+      {negativeMode && <span style={{ color: '#ff4040' }}>NEG</span>}
       {csg && <span style={{ color: '#ff9f40' }}>CSG⏳</span>}
       <span style={{ color: undo ? '#00d563' : '#3a3f47' }}>↩</span>
       <span style={{ color: redo ? '#00d563' : '#3a3f47' }}>↪</span>

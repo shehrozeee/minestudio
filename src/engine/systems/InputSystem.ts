@@ -106,6 +106,14 @@ export class InputSystem {
         useStore.getState().setTool(cur === 'paint' ? 'place' : 'paint')
       })
     }
+
+    // N key = toggle negative block mode
+    if (e.code === 'KeyN') {
+      this.getStore().then(({ useStore }) => {
+        const cur = useStore.getState().negativeMode
+        useStore.getState().setNegativeMode(!cur)
+      })
+    }
   }
 
   private onKeyUp = (e: KeyboardEvent): void => {

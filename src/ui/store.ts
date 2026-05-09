@@ -21,6 +21,7 @@ interface StoreActions {
   setSelectedBlockDefId: (id: string) => void
   setHotbarSlot: (slot: number) => void
   setHotbarSlots: (slots: string[]) => void
+  setNegativeMode: (on: boolean) => void
 }
 
 type Store = AppState & StoreActions
@@ -47,6 +48,7 @@ const initialState: AppState = {
   bodyList: [],
   validationWarnings: [],
   csgPending: false,
+  negativeMode: false,
   hotbarSlots: ['cube', 'slab', 'sphere', 'cylinder', 'cone', 'torus', 'wedge', 'cube', 'cube'],
   selectedSlot: 0,
 }
@@ -74,6 +76,7 @@ export const useStore = create<Store>()((set) => ({
   setSelectedBlockDefId: (selectedBlockDefId) => set({ selectedBlockDefId }),
   setHotbarSlot: (selectedSlot) => set({ selectedSlot }),
   setHotbarSlots: (hotbarSlots) => set({ hotbarSlots }),
+  setNegativeMode: (negativeMode) => set({ negativeMode }),
 }))
 
 export function resetStore(): void {

@@ -103,7 +103,7 @@ export class PlacementSystem {
         position: { ...this.ghostPos },
         rotation: { x: 0 as 0, y: 0 as 0, z: 0 as 0 },
         color: state.selectedColor,
-        isNegative: false,
+        isNegative: state.negativeMode,
         isPrintable: def.isPrintable,
         isSupport: false,
         storageKind: 'grid',
@@ -157,13 +157,14 @@ export class PlacementSystem {
     const size = state.selectedSize
 
     this.ghostPos = pos
-    this.updateGhost(pos, defId, size)
+    this.updateGhost(pos, defId, size, state.negativeMode)
   }
 
   private updateGhost(
     pos: { gx: number; gy: number; gz: number },
     defId: string,
     size: BlockSize,
+    negativeMode: boolean,
   ): void {
     const def = getBlockDef(defId)
     if (!def) return
@@ -177,7 +178,7 @@ export class PlacementSystem {
       }
       const geo = def.makeGeometry(unitSize)
       const mat = new THREE.MeshBasicMaterial({
-        color: 0x00d563,
+        color: negativeMode ? 0xff2020 : 0x00d563,
         wireframe: true,
         transparent: true,
         opacity: 0.8,
@@ -186,6 +187,10 @@ export class PlacementSystem {
       this.engine.scene.add(this.ghostMesh)
       this.ghostDefId = defId
       this.ghostSize = size
+    } else {
+      // Update color when negativeMode toggles without rebuilding geometry
+      const mat = this.ghostMesh.material as THREE.MeshBasicMaterial
+      mat.color.setHex(negativeMode ? 0xff2020 : 0x00d563)
     }
 
     const half = unitSize / 2
