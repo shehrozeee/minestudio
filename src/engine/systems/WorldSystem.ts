@@ -59,6 +59,7 @@ export class WorldSystem {
       new THREE.MeshStandardMaterial({ color: 0x222831 })
     )
     plateMesh.position.y = -2
+    plateMesh.userData['isPlate'] = true
     scene.add(plateMesh)
 
     const canvas = document.createElement('canvas')

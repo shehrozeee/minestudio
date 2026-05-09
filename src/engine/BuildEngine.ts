@@ -34,6 +34,7 @@ export class BuildEngine {
 
   private animFrameId = 0
   private lastTime = 0
+  private nextId = 1
 
   constructor(canvas: HTMLCanvasElement) {
     this.scene = new THREE.Scene()
@@ -52,7 +53,7 @@ export class BuildEngine {
 
     this.world = new WorldSystem(this)
     this.input = new InputSystem(this)
-    this.placement = new PlacementSystem()
+    this.placement = new PlacementSystem(this)
     this.render = new RenderSystem(this)
     this.connector = new ConnectorSystem()
     this.csg = new CSGSystem()
@@ -61,6 +62,8 @@ export class BuildEngine {
     this.storage = new StorageSystem()
     this.migration = new MigrationSystem()
   }
+
+  getNextId(): number { return this.nextId++ }
 
   init(): void {
     this.world.init()
