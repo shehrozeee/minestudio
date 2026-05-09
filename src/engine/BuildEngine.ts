@@ -59,8 +59,8 @@ export class BuildEngine {
     this.csg = new CSGSystem()
     this.validation = new ValidationSystem()
     this.exporter = new ExportSystem()
-    this.storage = new StorageSystem()
     this.migration = new MigrationSystem()
+    this.storage = new StorageSystem(this)
   }
 
   getNextId(): number { return this.nextId++ }
@@ -87,6 +87,13 @@ export class BuildEngine {
           this.objects.filter(o => o.isPrintable).length
         )
       })
+    })
+
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.code === 'KeyS') {
+        e.preventDefault()
+        this.storage.exportToFile()
+      }
     })
 
     window.addEventListener('resize', this.onResize)
