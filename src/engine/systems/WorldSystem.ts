@@ -20,6 +20,8 @@ export class WorldSystem {
   private scene!: THREE.Scene
   private lamps: Map<number, THREE.PointLight> = new Map()
   private readonly LAMP_CAP = 12
+  // Printer ambient lights — always on, intensify at night
+  private printerLights: THREE.PointLight[] = []
 
   constructor(engine: BuildEngine) {
     this.engine = engine
@@ -57,6 +59,7 @@ export class WorldSystem {
     this.updateSky()
 
     this.buildPlate()
+    this.buildPrinterLights(scene)
 
     const edges = new THREE.EdgesGeometry(
       new THREE.BoxGeometry(PLATE_SIZE, PLATE_SIZE, PLATE_SIZE)
@@ -122,6 +125,26 @@ export class WorldSystem {
     scene.add(ground)
   }
 
+  private buildPrinterLights(scene: THREE.Scene): void {
+    const H = PLATE_SIZE / 2
+    // Four corner uplights along frame edge — cool blue-white like Bambu LED strips
+    const positions = [
+      [-H, -8,  H], [ H, -8,  H],
+      [-H, -8, -H], [ H, -8, -H],
+    ]
+    for (const [x, y, z] of positions) {
+      const light = new THREE.PointLight(0x99ccff, 0, 180)  // starts at 0, ramps up at night
+      light.position.set(x, y, z)
+      scene.add(light)
+      this.printerLights.push(light)
+    }
+    // Central under-plate glow — warm amber like heated bed
+    const bedGlow = new THREE.PointLight(0xff6600, 0, 120)
+    bedGlow.position.set(0, -12, 0)
+    scene.add(bedGlow)
+    this.printerLights.push(bedGlow)
+  }
+
   private updateSky(): void {
     // dayTime 0=midnight, 0.25=sunrise, 0.5=noon, 0.75=sunset, 1=midnight
     const angle = this.dayTime * Math.PI * 2 - Math.PI / 2
@@ -137,12 +160,25 @@ export class WorldSystem {
     this.sun.position.copy(this.sunDir).multiplyScalar(500)
 
     const dayFactor = Math.max(0, elevation)
+    const nightFactor = 1 - dayFactor           // 1 at midnight, 0 at noon
     const duskFactor = Math.max(0, 1 - Math.abs(elevation) * 3)  // peaks at horizon
 
     this.sun.intensity = 0.05 + dayFactor * 1.8
     this.sun.color.setHSL(0.1 - duskFactor * 0.05, 0.8 + duskFactor * 0.2, 0.5 + dayFactor * 0.5)
-    this.hemi.intensity = 0.1 + dayFactor * 0.7
+    // Minimum ambient so blocks never disappear in darkness
+    this.hemi.intensity = 0.25 + dayFactor * 0.55
     this.hemi.color.setHSL(0.6 - duskFactor * 0.1, 0.5, 0.5 + dayFactor * 0.3)
+
+    // Printer LED strips — ramp up as sun goes down
+    if (this.printerLights.length > 0) {
+      const ledIntensity = 0.2 + nightFactor * 1.6
+      for (let i = 0; i < 4; i++) {
+        const l = this.printerLights[i]
+        if (l) l.intensity = ledIntensity
+      }
+      const bed = this.printerLights[4]
+      if (bed) bed.intensity = 0.1 + nightFactor * 0.8
+    }
 
     // Night sky — darken scene background via fog color
     const nightFog = new THREE.Color(0x0a0a18)
