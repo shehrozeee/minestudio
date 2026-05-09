@@ -59,10 +59,15 @@ Every exported symbol is listed here. Agents must check this file before importi
 - `PlacementSystem`, `RenderSystem`, `ConnectorSystem`, `CSGSystem`, `ValidationSystem`, `StorageSystem`, `MigrationSystem`, `ImportSystem`
 
 ## src/engine/systems/ExportSystem.ts
+- `sanitizeName(name: string): string` — strips illegal filename chars, max 64 chars
+- `groupObjectsByBody(objects: PlacedObject[]): Map<string, PlacedObject[]>` — groups printable non-negative objects by bodyName
 - `ExportSystem` (class)
   - `init(): void` — registers Ctrl+Shift+E shortcut
-  - `exportSTL(): void` — single merged STL of all printable objects
-  - `exportSTLZip(): Promise<void>` — multi-body zip: groups objects by `bodyName`, one `.stl` per group, packaged as `.zip` via JSZip
+  - `exportSTL(printableObjects?: PlacedObject[]): void` — single merged STL of all printable objects
+  - `exportSTLZip(printableObjects?: PlacedObject[]): Promise<void>` — multi-body zip: groups objects by `bodyName`, one `.stl` per group
+  - `export3MF(objects: PlacedObject[], bodies: BodyDef[]): Promise<void>` — exports as 3MF ZIP (Bambu Studio compatible)
+  - `exportAll(format: 'stl-all' | 'stl-zip' | '3mf-all' | '3mf-selected'): Promise<void>` — full pipeline with validation gate
+  - `exportAnyway(format: ...): Promise<void>` — bypass validation gate
 
 ## src/engine/systems/ImportSystem.ts
 - `ImportSystem` (class)
@@ -88,3 +93,35 @@ Every exported symbol is listed here. Agents must check this file before importi
 
 ## src/ui/components/BodyNamePanel.tsx
 - `BodyNamePanel` (component) — bottom-right panel for naming a selected object body; visible when `selectedObjectId !== null`
+
+## src/engine/commands/ChainCommand.ts
+- `ChainCommand` (class, implements `Command`)
+  - `constructor(hookAId: number, hookBId: number, engine: BuildEngine)`
+  - `execute(): void` — generates parabolic chain of cube links between two hook objects, pushes to engine.objects
+  - `undo(): void` — removes all generated links
+
+## src/engine/systems/WorldSystem.ts (updated)
+- `WorldSystem` (class)
+  - `addLamp(objectId: number, defId: string, position: THREE.Vector3): boolean` — adds PointLight for torch/lantern (max 12)
+  - `removeLamp(objectId: number): void` — removes PointLight for object
+  - `syncLamps(objects: PlacedObject[]): void` — diff-sync all lamp objects vs active PointLights; called after every command
+
+## src/engine/systems/ConnectorSystem.ts (updated)
+- `ConnectorSystem` (class)
+  - `getMates(): MateAnnotation[]` — returns current mate list (used by StorageSystem.buildSaveFile)
+  - `setAnnotationsVisible(visible: boolean): void` — shows/hides all mate arc lines and label sprites
+  - `tick(dt: number): void` — pulses unmatched connector emissive intensity
+  - `createMateVisual(mate: MateAnnotation): void` — draws bezier arc + label sprite in scene
+
+## src/ui/components/Inventory.tsx
+- `Inventory` (component) — full-screen block catalog overlay; opens on Tab / D-pad Up tap; tabs by BlockCategory
+
+## src/ui/components/ExportDialog.tsx
+- `ExportDialog` (component) — export format picker dialog
+  - Props: `open: boolean`, `onClose: () => void`, `onExport: (format: string) => void`
+
+## src/ui/components/PauseMenu.tsx
+- `PauseMenu` (component) — pause/save/load overlay; fires `minestudio:save-slot` and `minestudio:load-slot` CustomEvents
+
+## src/ui/components/ImportPreview.tsx
+- `ImportPreview` (component) — shows imported STL/GLB block count with confirm/cancel; reads `importPreviewObjects` from store

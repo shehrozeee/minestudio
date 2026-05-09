@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import type { BuildEngine } from '../BuildEngine'
-import { GRID_BASE } from '../grid'
+import type { PlacedObject } from '../types'
+import { GRID_BASE, toWorld } from '../grid'
 
 const PLATE_CELLS = 128
 const PLATE_SIZE = PLATE_CELLS * GRID_BASE
@@ -13,6 +14,9 @@ export class WorldSystem {
   private sun!: THREE.DirectionalLight
   private dayTime = 0.25
   private onTimeUpdate?: (t: number) => void
+  private scene!: THREE.Scene
+  private lamps: Map<number, THREE.PointLight> = new Map()
+  private readonly LAMP_CAP = 12
 
   constructor(engine: BuildEngine) {
     this.engine = engine
@@ -24,6 +28,7 @@ export class WorldSystem {
 
   init(): void {
     const { scene, camera } = this.engine
+    this.scene = scene
 
     scene.background = new THREE.Color(0x88bbe8)
     scene.fog = new THREE.Fog(0xa8c8e8, 400, 1500)
@@ -122,5 +127,56 @@ export class WorldSystem {
     this.onTimeUpdate?.(this.dayTime)
   }
 
-  dispose(): void {}
+  addLamp(objectId: number, defId: string, position: THREE.Vector3): boolean {
+    if (this.lamps.size >= this.LAMP_CAP) return false
+    const isLantern = defId === 'lantern'
+    const light = new THREE.PointLight(
+      isLantern ? 0xfff5e0 : 0xff8844,
+      isLantern ? 1.5 : 1.0,
+      isLantern ? 40 : 20,
+    )
+    light.position.copy(position)
+    this.scene.add(light)
+    this.lamps.set(objectId, light)
+    return true
+  }
+
+  removeLamp(objectId: number): void {
+    const light = this.lamps.get(objectId)
+    if (light) {
+      this.scene.remove(light)
+      this.lamps.delete(objectId)
+    }
+  }
+
+  syncLamps(objects: PlacedObject[]): void {
+    const lampIds = new Set(
+      objects
+        .filter(o => o.defId === 'torch' || o.defId === 'lantern')
+        .map(o => o.id),
+    )
+
+    // Remove lights for objects that no longer exist
+    for (const [id, light] of this.lamps) {
+      if (!lampIds.has(id)) {
+        this.scene.remove(light)
+        this.lamps.delete(id)
+      }
+    }
+
+    // Add lights for new lamps (up to cap)
+    for (const obj of objects) {
+      if ((obj.defId !== 'torch' && obj.defId !== 'lantern') || this.lamps.has(obj.id)) continue
+      if (this.lamps.size >= this.LAMP_CAP) break
+      const worldPos = toWorld(obj.position)
+      this.addLamp(obj.id, obj.defId, worldPos)
+    }
+  }
+
+  dispose(): void {
+    for (const [, light] of this.lamps) {
+      this.scene.remove(light)
+    }
+    this.lamps.clear()
+  }
 }

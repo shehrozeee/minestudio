@@ -3,6 +3,7 @@ import type { BuildEngine } from '../BuildEngine'
 import type { BlockSize } from '../types'
 import { snapToGrid, GRID_BASE, SIZE_IN_UNITS } from '../grid'
 import { getBlockDef } from '../registries/blocks'
+import { CONNECTOR_REGISTRY } from '../registries/connectors'
 import { PlaceCommand } from '../commands/PlaceCommand'
 import { DeleteCommand } from '../commands/DeleteCommand'
 import { PaintCommand } from '../commands/PaintCommand'
@@ -17,6 +18,7 @@ export class PlacementSystem {
   private ghostSize: BlockSize = 'normal'
   private ghostPos: { gx: number; gy: number; gz: number } | null = null
   private storeCache: typeof import('../../ui/store') | null = null
+  private glowingMeshes: { mesh: THREE.Mesh; originalEmissive: THREE.Color }[] = []
 
   constructor(engine: BuildEngine) {
     this.engine = engine
@@ -142,6 +144,7 @@ export class PlacementSystem {
     if (!hit) {
       this.setGhostVisible(false)
       this.ghostPos = null
+      this.clearGlows()
       return
     }
 
@@ -149,6 +152,7 @@ export class PlacementSystem {
     if (!pos) {
       this.setGhostVisible(false)
       this.ghostPos = null
+      this.clearGlows()
       return
     }
 
@@ -158,6 +162,7 @@ export class PlacementSystem {
 
     this.ghostPos = pos
     this.updateGhost(pos, defId, size, state.negativeMode)
+    this.updateConnectorGlows()
   }
 
   private updateGhost(
@@ -206,6 +211,53 @@ export class PlacementSystem {
     if (this.ghostMesh) this.ghostMesh.visible = v
   }
 
+  private clearGlows(): void {
+    for (const { mesh, originalEmissive } of this.glowingMeshes) {
+      if (mesh.material instanceof THREE.MeshStandardMaterial) {
+        mesh.material.emissive.copy(originalEmissive)
+        mesh.material.emissiveIntensity = 0
+      }
+    }
+    this.glowingMeshes = []
+  }
+
+  private updateConnectorGlows(): void {
+    this.clearGlows()
+    if (!this.storeCache) return
+    const state = this.storeCache.useStore.getState()
+    const defId = state.hotbarSlots[state.selectedSlot]
+    if (!defId) return
+    const selectedDef = getBlockDef(defId)
+    if (!selectedDef || selectedDef.category !== 'connector') return
+
+    const connectorDef = CONNECTOR_REGISTRY.find(c => c.id === defId)
+    if (!connectorDef) return
+
+    const objects = this.engine.objects
+    for (const obj of objects) {
+      const objDef = getBlockDef(obj.defId)
+      if (!objDef || objDef.category !== 'connector') continue
+      const mesh = this.engine.render.getMesh(obj.id)
+      if (!mesh || !(mesh.material instanceof THREE.MeshStandardMaterial)) continue
+
+      const objConnDef = CONNECTOR_REGISTRY.find(c => c.id === obj.defId)
+      const isCompatible = objConnDef !== undefined &&
+        (connectorDef.matesWith.includes(obj.defId) || objConnDef.matesWith.includes(defId))
+
+      const originalEmissive = mesh.material.emissive.clone()
+
+      if (isCompatible) {
+        mesh.material.emissive.set(0x00ff00)
+        mesh.material.emissiveIntensity = 0.5
+        this.glowingMeshes.push({ mesh, originalEmissive })
+      } else {
+        mesh.material.emissive.set(0xff0000)
+        mesh.material.emissiveIntensity = 0.3
+        this.glowingMeshes.push({ mesh, originalEmissive })
+      }
+    }
+  }
+
   dispose(): void {
     const { renderer } = this.engine
     renderer.domElement.removeEventListener('click', this.onLeftClick)
@@ -215,5 +267,6 @@ export class PlacementSystem {
       this.engine.scene.remove(this.ghostMesh)
       this.ghostMesh.geometry.dispose()
     }
+    this.clearGlows()
   }
 }

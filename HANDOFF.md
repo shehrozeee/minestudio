@@ -6,24 +6,73 @@ A dad is rebuilding a 3D printer builder app his kid made (single HTML file) int
 
 ## Current State
 
-- `shape_studio.html` — original working app (reference only, do not modify)
-- `docs/superpowers/specs/2026-05-09-minestudio-design.md` — FULL design spec (read this first)
+All phases through Phase 6 plus full spec gap audit are COMPLETE.
+
+**Build status:** `npx tsc --noEmit` → 0 errors. `npx vitest run` → 167 tests passing (16 test files).
+
+### What's Been Built
+
+**Engine systems (src/engine/):**
+- `BuildEngine.ts` — orchestrator; wires all systems; animates at 60 fps; subscribes store for annotation visibility sync
+- `types.ts` — canonical type definitions (PlacedObject, BlockDef, ConnectorDef, MateAnnotation, SaveFile, AppState, ...)
+- `grid.ts` — OccupancyMap, toWorld, snapToGrid, GRID_BASE=2
+- `commands/` — Command + CommandBus (100-step undo), PlaceCommand, DeleteCommand, PaintCommand, BulkPlaceCommand, SetBodyNameCommand, ChainCommand
+- `systems/WorldSystem.ts` — build plate, sky/day cycle, lamp PointLights (torch/lantern, max 12), syncLamps()
+- `systems/InputSystem.ts` — keyboard + full Xbox gamepad mapping (all buttons, sticks, triggers, combos)
+- `systems/PlacementSystem.ts` — ghost preview, raycast, place/erase/paint/connector-glow
+- `systems/RenderSystem.ts` — Three.js mesh lifecycle, getMesh()
+- `systems/ConnectorSystem.ts` — mate annotation arcs (bezier + sprite label), unmatched connector pulse, getMates(), setAnnotationsVisible()
+- `systems/CSGSystem.ts` — negative block CSG (deferred, web worker)
+- `systems/ValidationSystem.ts` — floating block, overlap, volume checks
+- `systems/ExportSystem.ts` — STL, STL-zip, 3MF export; full exportAll() pipeline with validation gate
+- `systems/StorageSystem.ts` — auto-save, 5 named save slots, drag-drop import (.minstudio / .stl / .glb)
+- `systems/MigrationSystem.ts` — save file versioning
+- `systems/ImportSystem.ts` — STL + GLB import → grid voxels
+
+**Registries:**
+- `registries/blocks.ts` — full block catalog: basic shapes, round, partial, connectors, lamps (torch, lantern), fillet, peg/slot variants, chain hook
+- `registries/connectors.ts` — connector mating rules
+- `registries/hints.ts` — contextual hint definitions
+
+**UI (src/ui/):**
+- `store.ts` — Zustand store (all AppState fields + actions)
+- `App.tsx` — canvas + all overlays; handleExport → engine.exporter.exportAll()
+- `components/HUD.tsx`, `Hotbar.tsx`, `ColorPicker.tsx`, `ContextualHints.tsx`, `ToolRing.tsx`
+- `components/BodyNamePanel.tsx`, `BodyList.tsx`
+- `components/ControlsPage.tsx` — full controls reference
+- `components/Inventory.tsx` — Tab-open block catalog by category
+- `components/ExportDialog.tsx` — format picker
+- `components/PauseMenu.tsx` — save/load named slots (fires CustomEvents to StorageSystem)
+- `components/ImportPreview.tsx` — confirm/cancel imported block placement
+
+**Key wiring:**
+- `commandBus.onChange` → `world.syncLamps(objects)` (lamps stay in sync after every undo/redo)
+- store `annotationsVisible` subscriber → `connector.setAnnotationsVisible()` (annotation toggle works from gamepad Back+LB)
+- `connector.tick(dt)` + `placement.tick(dt)` called in animate loop
+- `StorageSystem` listens for `minestudio:save-slot` + `minestudio:load-slot` from PauseMenu
+- `ExportSystem.getMates()` used by StorageSystem.buildSaveFile()
+
+### Original Files (reference only, do not modify)
+- `shape_studio.html` — original working app
+- `docs/superpowers/specs/2026-05-09-minestudio-design.md` — FULL design spec
 - `docs/superpowers/plans/2026-05-09-master-roadmap.md` — all phases overview
-- `docs/superpowers/plans/2026-05-09-phase1-foundation.md` — Phase 1 detailed plan (start here)
-- **Git NOT initialized yet** — must do `git init` as first step
-- **No app code written yet** — everything is spec + plan only
+- `docs/superpowers/plans/2026-05-09-phase1-foundation.md` — Phase 1 detailed plan
 
-## What Needs To Happen
+## Known Issues
 
-Execute Phase 1 from `docs/superpowers/plans/2026-05-09-phase1-foundation.md`.
+None. All TypeScript errors resolved, all tests passing.
 
-**Critical first steps (in order):**
-1. `git init` in the project root
-2. Commit existing files (CLAUDE.md, shape_studio.html, docs/)
-3. Create branch `feat/phase1-foundation`
-4. Create `src/engine/types.ts` FIRST — this is the source of truth for all type names
-5. Create `CONTRACTS.md` — lists all exported symbols so agents don't invent their own names
-6. Then implement remaining tasks
+The `HTMLCanvasElement.prototype.getContext` stderr messages in `connector.test.ts` are expected jsdom limitations (canvas API not available in Node.js without the `canvas` npm package). These do not cause test failures — all 17 connector tests pass. The label sprite in `createMateVisual` gracefully handles `ctx === null`.
+
+## What To Build Next
+
+Phase 7 candidates (from master roadmap):
+- Multiplayer via PartyKit (see `memory/project_multiplayer_partykit.md`)
+- CSG preview (negative block rendering in build mode)
+- Text tool (THREE.TextGeometry with helvetiker font)
+- Fillet tool (live mesh rounding on selected faces)
+- Measure tool (distance readout between two points)
+- Deploy to Cloudflare Pages / GitHub Pages
 
 ## Tech Stack Decisions (Final, No Changes)
 

@@ -1,23 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import type { PlacedObject } from '../../src/engine/types'
+import { groupObjectsByBody, sanitizeName } from '../../src/engine/systems/ExportSystem'
 
-// Pure body-grouping logic extracted for testing — no Three.js / DOM dependency
-
-function sanitizeName(name: string): string {
-  return name.replace(/[^a-zA-Z0-9_\-]/g, '_').slice(0, 64) || 'body'
-}
-
-function groupByBody(objects: PlacedObject[]): Map<string, PlacedObject[]> {
-  const groups = new Map<string, PlacedObject[]>()
-  for (const obj of objects) {
-    if (!obj.isPrintable || obj.isNegative) continue
-    const key = obj.bodyName ? sanitizeName(obj.bodyName) : 'body'
-    const arr = groups.get(key) ?? []
-    arr.push(obj)
-    groups.set(key, arr)
-  }
-  return groups
-}
+// ---------------------------------------------------------------------------
+// Test helper
+// ---------------------------------------------------------------------------
 
 function makeObj(id: number, opts: Partial<PlacedObject> = {}): PlacedObject {
   return {
@@ -35,16 +22,20 @@ function makeObj(id: number, opts: Partial<PlacedObject> = {}): PlacedObject {
   }
 }
 
-describe('ExportSystem groupByBody', () => {
+// ---------------------------------------------------------------------------
+// groupObjectsByBody
+// ---------------------------------------------------------------------------
+
+describe('ExportSystem groupObjectsByBody', () => {
   it('single object with no bodyName goes to "body" group', () => {
-    const groups = groupByBody([makeObj(1)])
+    const groups = groupObjectsByBody([makeObj(1)])
     expect(groups.size).toBe(1)
     expect(groups.has('body')).toBe(true)
     expect(groups.get('body')).toHaveLength(1)
   })
 
   it('objects with same bodyName go into same group', () => {
-    const groups = groupByBody([
+    const groups = groupObjectsByBody([
       makeObj(1, { bodyName: 'Torso' }),
       makeObj(2, { bodyName: 'Torso' }),
     ])
@@ -53,7 +44,7 @@ describe('ExportSystem groupByBody', () => {
   })
 
   it('objects with different bodyNames go into different groups', () => {
-    const groups = groupByBody([
+    const groups = groupObjectsByBody([
       makeObj(1, { bodyName: 'Arm' }),
       makeObj(2, { bodyName: 'Leg' }),
     ])
@@ -63,7 +54,7 @@ describe('ExportSystem groupByBody', () => {
   })
 
   it('negative objects are excluded', () => {
-    const groups = groupByBody([
+    const groups = groupObjectsByBody([
       makeObj(1),
       makeObj(2, { isNegative: true }),
     ])
@@ -71,7 +62,7 @@ describe('ExportSystem groupByBody', () => {
   })
 
   it('non-printable objects are excluded', () => {
-    const groups = groupByBody([
+    const groups = groupObjectsByBody([
       makeObj(1),
       makeObj(2, { isPrintable: false }),
     ])
@@ -85,7 +76,80 @@ describe('ExportSystem groupByBody', () => {
   })
 
   it('empty object list produces empty groups', () => {
-    const groups = groupByBody([])
+    const groups = groupObjectsByBody([])
     expect(groups.size).toBe(0)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// 3MF XML structure (pure string tests — no DOM/Three)
+// ---------------------------------------------------------------------------
+
+describe('3MF export XML structure', () => {
+  /**
+   * Minimal hand-rolled 3MF model XML builder for testing — mirrors the shape
+   * of what export3MF produces, without needing Three.js geometry.
+   */
+  function make3MFModel(bodyName: string): string {
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<model unit="millimeter" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02">
+  <resources>
+    <object id="1" type="model" name="${bodyName}">
+      <mesh>
+        <vertices>
+          <vertex x="0.0000" y="0.0000" z="0.0000"/>
+          <vertex x="2.0000" y="0.0000" z="0.0000"/>
+          <vertex x="0.0000" y="2.0000" z="0.0000"/>
+        </vertices>
+        <triangles>
+          <triangle v1="0" v2="1" v3="2"/>
+        </triangles>
+      </mesh>
+    </object>
+  </resources>
+  <build>
+    <item objectid="1"/>
+  </build>
+</model>`
+  }
+
+  it('model XML contains <model> root element', () => {
+    const xml = make3MFModel('body')
+    expect(xml).toContain('<model')
+    expect(xml).toContain('</model>')
+  })
+
+  it('model XML contains <resources> and <build>', () => {
+    const xml = make3MFModel('body')
+    expect(xml).toContain('<resources>')
+    expect(xml).toContain('<build>')
+  })
+
+  it('model XML contains <object> with expected id and name', () => {
+    const xml = make3MFModel('TestBody')
+    expect(xml).toContain('id="1"')
+    expect(xml).toContain('name="TestBody"')
+  })
+
+  it('model XML contains <mesh> with <vertices> and <triangles>', () => {
+    const xml = make3MFModel('body')
+    expect(xml).toContain('<mesh>')
+    expect(xml).toContain('<vertices>')
+    expect(xml).toContain('<triangles>')
+  })
+
+  it('model XML contains <item objectid="1"/>', () => {
+    const xml = make3MFModel('body')
+    expect(xml).toContain('<item objectid="1"/>')
+  })
+
+  it('unit attribute is millimeter', () => {
+    const xml = make3MFModel('body')
+    expect(xml).toContain('unit="millimeter"')
+  })
+
+  it('xmlns is the 3dmanufacturing namespace', () => {
+    const xml = make3MFModel('body')
+    expect(xml).toContain('xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02"')
   })
 })

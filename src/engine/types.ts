@@ -64,6 +64,12 @@ export interface MateAnnotation {
   connectorAId: number
   connectorBId: number
   color: string
+  label: string
+}
+
+export interface HintDef {
+  condition: (state: AppState) => boolean
+  hints: { icon: string; binding: string; label: string }[]
 }
 
 export interface BodyDef {
@@ -78,12 +84,25 @@ export interface ValidationWarning {
   objectId?: number
 }
 
+export interface NamedSaveSlot {
+  name: string
+  data: SaveFile
+  savedAt: number
+}
+
 export interface SaveFile {
   version: number
   objects: PlacedObject[]
   mates: MateAnnotation[]
   bodies: BodyDef[]
   camera: { position: GridPos; rotationY: number }
+  customBlocks?: CustomBlockDef[]
+}
+
+export interface CustomBlockDef {
+  id: string
+  label: string
+  geometryBuffer: ArrayBuffer
 }
 
 export interface AppState {
@@ -114,4 +133,8 @@ export interface AppState {
   showControls: boolean
   selectedObjectId: string | null
   objects: PlacedObject[]
+  annotationsVisible: boolean
+  activeFirstMateId: number | null
+  importPreviewObjects: PlacedObject[] | null
+  pauseMenuOpen: boolean
 }

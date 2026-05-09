@@ -38,6 +38,44 @@ describe('BLOCK_REGISTRY', () => {
   it('getBlockDef returns undefined for unknown id', () => {
     expect(getBlockDef('unknown-xyz')).toBeUndefined()
   })
+
+  it('torch block isPrintable === false', () => {
+    const torch = getBlockDef('torch')
+    expect(torch).toBeDefined()
+    expect(torch!.isPrintable).toBe(false)
+  })
+
+  it('lantern block isPrintable === false', () => {
+    const lantern = getBlockDef('lantern')
+    expect(lantern).toBeDefined()
+    expect(lantern!.isPrintable).toBe(false)
+  })
+
+  it('all peg variants have exportBehavior isolated', () => {
+    for (const id of ['peg-1x', 'peg-2x', 'peg-3x']) {
+      const def = getBlockDef(id)
+      expect(def).toBeDefined()
+      expect(def!.exportBehavior).toBe('isolated')
+    }
+  })
+
+  it('chain-hook block exists with category connector', () => {
+    const hook = getBlockDef('chain-hook')
+    expect(hook).toBeDefined()
+    expect(hook!.category).toBe('connector')
+  })
+
+  it('fillet-corner exists with category partial', () => {
+    const fc = getBlockDef('fillet-corner')
+    expect(fc).toBeDefined()
+    expect(fc!.category).toBe('partial')
+  })
+
+  it('fillet-edge exists with category partial', () => {
+    const fe = getBlockDef('fillet-edge')
+    expect(fe).toBeDefined()
+    expect(fe!.category).toBe('partial')
+  })
 })
 
 describe('DEFAULT_HOTBAR', () => {

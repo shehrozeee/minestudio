@@ -86,12 +86,22 @@ export class BuildEngine {
 
     this.commandBus.onChange(({ canUndo, canRedo }) => {
       this.render.sync(this.objects)
+      this.world.syncLamps(this.objects)
       import('../ui/store').then(({ useStore }) => {
         useStore.getState().setUndoState({ canUndo, canRedo })
         useStore.getState().setObjectCount(
           this.objects.filter(o => o.isPrintable).length
         )
       })
+    })
+
+    // Sync annotation visibility from store to ConnectorSystem
+    let prevAnnotationsVisible = this.store.getState().annotationsVisible
+    this.store.subscribe((state) => {
+      if (state.annotationsVisible !== prevAnnotationsVisible) {
+        prevAnnotationsVisible = state.annotationsVisible
+        this.connector.setAnnotationsVisible(state.annotationsVisible)
+      }
     })
 
     document.addEventListener('keydown', (e) => {

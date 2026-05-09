@@ -25,6 +25,11 @@ interface StoreActions {
   setShowControls: (v: boolean) => void
   setSelectedObjectId: (id: string | null) => void
   updateObjectBodyName: (id: number, name: string | undefined) => void
+  setAnnotationsVisible: (v: boolean) => void
+  setActiveFirstMateId: (id: number | null) => void
+  setImportPreviewObjects: (objs: PlacedObject[] | null) => void
+  setPauseMenuOpen: (v: boolean) => void
+  setSinkDepth: (depth: number) => void
 }
 
 type Store = AppState & StoreActions
@@ -57,6 +62,10 @@ const initialState: AppState = {
   showControls: false,
   selectedObjectId: null,
   objects: [],
+  annotationsVisible: true,
+  activeFirstMateId: null,
+  importPreviewObjects: null,
+  pauseMenuOpen: false,
 }
 
 export const useStore = create<Store>()((set) => ({
@@ -88,6 +97,11 @@ export const useStore = create<Store>()((set) => ({
   updateObjectBodyName: (id, name) => set((state: Store) => ({
     objects: state.objects.map((o: PlacedObject) => o.id === id ? { ...o, bodyName: name } : o),
   })),
+  setAnnotationsVisible: (annotationsVisible) => set({ annotationsVisible }),
+  setActiveFirstMateId: (activeFirstMateId) => set({ activeFirstMateId }),
+  setImportPreviewObjects: (importPreviewObjects) => set({ importPreviewObjects }),
+  setPauseMenuOpen: (pauseMenuOpen) => set({ pauseMenuOpen }),
+  setSinkDepth: (sinkDepth) => set({ sinkDepth }),
 }))
 
 export function resetStore(): void {

@@ -1,11 +1,14 @@
 import type { BuildEngine } from '../BuildEngine'
-import type { SaveFile } from '../types'
+import type { NamedSaveSlot, SaveFile } from '../types'
 import { ImportSystem } from './ImportSystem'
 import { BulkPlaceCommand } from '../commands/BulkPlaceCommand'
 
 const AUTO_SAVE_KEY = 'minestudio_autosave'
+const SAVE_SLOTS_KEY = 'minestudio_slots'
+const SAVE_SLOTS_META_KEY = 'minestudio_slots_meta'
 const CURRENT_VERSION = 1
 const AUTO_SAVE_INTERVAL_MS = 30_000
+const SLOT_COUNT = 5
 
 export class StorageSystem {
   private engine: BuildEngine
@@ -32,15 +35,94 @@ export class StorageSystem {
     // Listen for drag-drop file import
     document.addEventListener('dragover', (e) => e.preventDefault())
     document.addEventListener('drop', this.onDrop)
+
+    // Listen for save-slot events from the PauseMenu / UI
+    window.addEventListener('minestudio:save-slot', (e: Event) => {
+      const { slot, name } = (e as CustomEvent<{ slot: number; name: string }>).detail
+      this.saveToSlot(slot, name)
+      // Write slot metadata for the UI to read without full data
+      this.updateSlotMeta()
+    })
+
+    // Listen for load-slot events
+    window.addEventListener('minestudio:load-slot', (e: Event) => {
+      const { slot } = (e as CustomEvent<{ slot: number }>).detail
+      this.loadFromSlot(slot)
+    })
   }
 
-  private buildSaveFile(): SaveFile {
-    const { objects } = this.engine
+  // ---------------------------------------------------------------------------
+  // Named save slots
+  // ---------------------------------------------------------------------------
+
+  /** Returns the full slot array (5 entries, may be null). */
+  loadSlots(): (NamedSaveSlot | null)[] {
+    try {
+      const raw = localStorage.getItem(SAVE_SLOTS_KEY)
+      if (!raw) return Array(SLOT_COUNT).fill(null) as null[]
+      const parsed = JSON.parse(raw) as (NamedSaveSlot | null)[]
+      // Ensure exactly SLOT_COUNT entries
+      while (parsed.length < SLOT_COUNT) parsed.push(null)
+      return parsed.slice(0, SLOT_COUNT)
+    } catch {
+      return Array(SLOT_COUNT).fill(null) as null[]
+    }
+  }
+
+  /** Save current state to a named slot (0-indexed). */
+  saveToSlot(slot: number, name: string): void {
+    if (slot < 0 || slot >= SLOT_COUNT) return
+    try {
+      const slots = this.loadSlots()
+      const saveFile = this.buildSaveFile()
+      slots[slot] = { name, data: saveFile, savedAt: Date.now() }
+      localStorage.setItem(SAVE_SLOTS_KEY, JSON.stringify(slots))
+      this.updateSlotMeta()
+    } catch {
+      // quota exceeded or private mode
+    }
+  }
+
+  /** Load state from a named slot (0-indexed). */
+  loadFromSlot(slot: number): void {
+    if (slot < 0 || slot >= SLOT_COUNT) return
+    try {
+      const slots = this.loadSlots()
+      const saved = slots[slot]
+      if (!saved) return
+      this.restoreFromSave(saved.data)
+    } catch {
+      // bad slot data
+    }
+  }
+
+  /** Write lightweight slot metadata (name + savedAt) for the UI. */
+  private updateSlotMeta(): void {
+    try {
+      const slots = this.loadSlots()
+      const meta = slots.map(s => s ? { name: s.name, savedAt: s.savedAt } : null)
+      localStorage.setItem(SAVE_SLOTS_META_KEY, JSON.stringify(meta))
+    } catch {
+      // quota
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Save file construction
+  // ---------------------------------------------------------------------------
+
+  buildSaveFile(): SaveFile {
+    const state = this.engine.store.getState()
+    // Collect mates from connector system via public API.
+    // ConnectorSystem uses a different MateAnnotation shape (objectAId/objectBId vs
+    // connectorAId/connectorBId in types.ts). Cast through unknown to store them;
+    // the migration system handles reconciliation on load.
+    const mates = this.engine.connector.getMates() as unknown as SaveFile['mates']
     return {
       version: CURRENT_VERSION,
-      objects: objects.map(o => ({ ...o })),
-      mates: [],
-      bodies: [],
+      objects: state.objects.map(o => ({ ...o })),
+      mates,
+      bodies: state.bodyList,
       camera: {
         position: {
           gx: this.engine.camera.position.x / 2,
@@ -51,6 +133,10 @@ export class StorageSystem {
       },
     }
   }
+
+  // ---------------------------------------------------------------------------
+  // Auto-save / localStorage
+  // ---------------------------------------------------------------------------
 
   saveToLocalStorage(): void {
     try {
@@ -98,6 +184,10 @@ export class StorageSystem {
       // bad save file
     }
   }
+
+  // ---------------------------------------------------------------------------
+  // File export / import
+  // ---------------------------------------------------------------------------
 
   exportToFile(): void {
     const data = this.buildSaveFile()

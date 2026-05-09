@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js'
 import type { BuildEngine } from '../BuildEngine'
 import { GRID_BASE } from '../grid'
-import { cycleColor } from '../registries/colors'
+import { cycleColor, COLORS, getColorIndex } from '../registries/colors'
 
 const WALK_SPEED = 80    // mm/s
 const FLY_SPEED = 120    // mm/s
@@ -30,6 +30,8 @@ const EMPTY_PREV: GamepadPrev = {
   dpadUp: false, dpadDown: false, dpadLeft: false, dpadRight: false,
 }
 
+let _nonStandardWarnShown = false
+
 export class InputSystem {
   private engine: BuildEngine
   private controls!: PointerLockControls
@@ -38,10 +40,23 @@ export class InputSystem {
   private flyMode = false
   private store: typeof import('../../ui/store') | null = null
 
+  // Keyboard hold state for T key (tool ring)
+  private tKeyDownTime = 0
+
   // Gamepad state
   private gamepadPrev: GamepadPrev = { ...EMPTY_PREV }
   private gamepadFlyTaps = 0
   private gamepadFlyLastTap = 0
+
+  // Gamepad hold timers
+  private xHoldStart = 0
+  private xRingOpened = false
+  private dUpHoldStart = 0
+  private dUpRingOpened = false
+
+  // Gamepad A double-tap state
+  private aLastTap = 0
+  private aTapCount = 0
 
   constructor(engine: BuildEngine) {
     this.engine = engine
@@ -78,8 +93,17 @@ export class InputSystem {
     document.addEventListener('keydown', this.onKeyDown)
     document.addEventListener('keyup', this.onKeyUp)
 
+    // Double-click = unlock pointer
+    document.addEventListener('dblclick', this.onDblClick)
+
     // Scroll wheel → cycle hotbar slot
     renderer.domElement.addEventListener('wheel', this.onWheel, { passive: true })
+  }
+
+  private onDblClick = (): void => {
+    if (this.controls?.isLocked) {
+      this.controls.unlock()
+    }
   }
 
   private onWheel = (e: WheelEvent): void => {
@@ -191,6 +215,11 @@ export class InputSystem {
       })
     }
 
+    // T key down: record time for hold detection
+    if (e.code === 'KeyT' && !e.repeat) {
+      this.tKeyDownTime = Date.now()
+    }
+
     // Escape = unlock pointer / close overlays
     if (e.code === 'Escape') {
       this.getStore().then(({ useStore }) => {
@@ -204,6 +233,31 @@ export class InputSystem {
 
   private onKeyUp = (e: KeyboardEvent): void => {
     this.keys.delete(e.code)
+
+    // T key up: hold >200ms = open ring, else cycle tool
+    if (e.code === 'KeyT') {
+      const held = Date.now() - this.tKeyDownTime
+      if (held > 200) {
+        // Held long enough — open tool ring
+        this.getStore().then(({ useStore }) => {
+          useStore.getState().setRingOpen(true, 'tools')
+        })
+      } else {
+        // Short tap — cycle tool forward
+        this.getStore().then(({ useStore }) => {
+          const TOOL_CYCLE = [
+            'place', 'erase', 'paint', 'eyedropper',
+            'select', 'sink', 'mate', 'fillet',
+            'support', 'measure', 'text',
+          ] as const
+          const cur = useStore.getState().selectedTool
+          const idx = TOOL_CYCLE.indexOf(cur as typeof TOOL_CYCLE[number])
+          const next = TOOL_CYCLE[(idx + 1) % TOOL_CYCLE.length]
+          useStore.getState().setTool(next)
+        })
+      }
+      this.tKeyDownTime = 0
+    }
   }
 
   isLocked(): boolean {
@@ -218,6 +272,17 @@ export class InputSystem {
       if (p && p.connected) { pad = p; break }
     }
     if (!pad) return
+
+    // Non-standard gamepad guard
+    if (pad.mapping !== 'standard') {
+      if (!_nonStandardWarnShown) {
+        console.warn('[MineStudio] Non-standard gamepad mapping detected — skipping gamepad input.')
+        _nonStandardWarnShown = true
+      }
+      return
+    }
+
+    const now = Date.now()
 
     const lx = dz(pad.axes[0] ?? 0)
     const ly = dz(pad.axes[1] ?? 0)
@@ -243,6 +308,7 @@ export class InputSystem {
     const dpadRight = btn(15)
 
     const justPressed = (cur: boolean, prev: boolean) => cur && !prev
+    const justReleased = (cur: boolean, prev: boolean) => !cur && prev
 
     // --- Movement (left stick) ---
     if (this.controls?.isLocked && (lx !== 0 || ly !== 0)) {
@@ -296,17 +362,43 @@ export class InputSystem {
       )
     }
 
-    // A = toggle fly (single press in new spec, no double-tap needed)
-    if (justPressed(a, this.gamepadPrev.a)) {
-      this.flyMode = !this.flyMode
+    // Back+A = redo (takes priority over A fly-toggle)
+    const backACombo = back && justPressed(a, this.gamepadPrev.a)
+    if (backACombo) {
+      this.engine.commandBus.redo()
+    }
+
+    // Back+LB = toggle annotations
+    const backLbCombo = back && justPressed(lb, this.gamepadPrev.lb)
+    if (backLbCombo) {
       this.getStore().then(({ useStore }) => {
-        useStore.getState().setFlyMode(this.flyMode)
+        useStore.getState().setAnnotationsVisible(!useStore.getState().annotationsVisible)
       })
+    }
+
+    // Back (alone) = undo
+    if (justPressed(back, this.gamepadPrev.back) && !a) {
+      this.engine.commandBus.undo()
+    }
+
+    // A = toggle fly on DOUBLE-TAP only (skip if Back+A combo)
+    if (!backACombo && justPressed(a, this.gamepadPrev.a)) {
+      if (this.aTapCount >= 1 && now - this.aLastTap < GAMEPAD_FLY_DOUBLE_TAP_MS) {
+        // Double-tap detected
+        this.flyMode = !this.flyMode
+        this.getStore().then(({ useStore }) => {
+          useStore.getState().setFlyMode(this.flyMode)
+        })
+        this.aTapCount = 0
+        this.aLastTap = 0
+      } else {
+        this.aTapCount = 1
+        this.aLastTap = now
+      }
     }
 
     // B = double-tap to toggle fly mode (original shape_studio behavior)
     if (justPressed(b, this.gamepadPrev.b)) {
-      const now = Date.now()
       this.gamepadFlyTaps++
       if (this.gamepadFlyTaps >= 2 && now - this.gamepadFlyLastTap < GAMEPAD_FLY_DOUBLE_TAP_MS) {
         this.flyMode = !this.flyMode
@@ -318,12 +410,29 @@ export class InputSystem {
       this.gamepadFlyLastTap = now
     }
 
-    // X = next color (cycle forward)
+    // X = tool ring on HOLD (>300ms), no single-tap color cycling
     if (justPressed(x, this.gamepadPrev.x)) {
-      this.getStore().then(({ useStore }) => {
-        const cur = useStore.getState().selectedColor
-        useStore.getState().setColor(cycleColor(cur, 1))
-      })
+      this.xHoldStart = now
+      this.xRingOpened = false
+    }
+    if (x) {
+      // X is held — check if we should open the ring
+      if (this.xHoldStart > 0 && !this.xRingOpened && (now - this.xHoldStart) > 300) {
+        this.xRingOpened = true
+        this.getStore().then(({ useStore }) => {
+          useStore.getState().setRingOpen(true, 'tools')
+        })
+      }
+    }
+    if (justReleased(x, this.gamepadPrev.x)) {
+      // On release: close ring (ring was opened by hold)
+      if (this.xRingOpened) {
+        this.getStore().then(({ useStore }) => {
+          useStore.getState().setRingOpen(false)
+        })
+      }
+      this.xHoldStart = 0
+      this.xRingOpened = false
     }
 
     // Y = cycle block size
@@ -336,21 +445,44 @@ export class InputSystem {
       })
     }
 
-    // LB (no fly) = prev hotbar slot
-    if (justPressed(lb, this.gamepadPrev.lb) && !this.flyMode) {
+    // LB: context-sensitive (skip if Back+LB combo)
+    if (!backLbCombo && justPressed(lb, this.gamepadPrev.lb)) {
       this.getStore().then(({ useStore }) => {
-        const { selectedSlot, hotbarSlots } = useStore.getState()
-        const next = (selectedSlot - 1 + hotbarSlots.length) % hotbarSlots.length
-        useStore.getState().setHotbarSlot(next)
+        const state = useStore.getState()
+        if (state.selectedTool === 'paint') {
+          // Cycle color backward
+          const idx = getColorIndex(state.selectedColor)
+          const newIdx = (idx - 1 + COLORS.length) % COLORS.length
+          state.setColor(COLORS[newIdx].hex)
+        } else if (this.flyMode) {
+          // Descend — handled above in fly vertical section
+          // (already covered by the fly vertical block above)
+        } else {
+          // Prev hotbar slot
+          const { selectedSlot, hotbarSlots } = state
+          const next = (selectedSlot - 1 + hotbarSlots.length) % hotbarSlots.length
+          state.setHotbarSlot(next)
+        }
       })
     }
 
-    // RB (no fly) = next hotbar slot
-    if (justPressed(rb, this.gamepadPrev.rb) && !this.flyMode) {
+    // RB: context-sensitive
+    if (justPressed(rb, this.gamepadPrev.rb)) {
       this.getStore().then(({ useStore }) => {
-        const { selectedSlot, hotbarSlots } = useStore.getState()
-        const next = (selectedSlot + 1) % hotbarSlots.length
-        useStore.getState().setHotbarSlot(next)
+        const state = useStore.getState()
+        if (state.selectedTool === 'paint') {
+          // Cycle color forward
+          const idx = getColorIndex(state.selectedColor)
+          const newIdx = (idx + 1) % COLORS.length
+          state.setColor(COLORS[newIdx].hex)
+        } else if (this.flyMode) {
+          // Rise — handled above in fly vertical section
+        } else {
+          // Next hotbar slot
+          const { selectedSlot, hotbarSlots } = state
+          const next = (selectedSlot + 1) % hotbarSlots.length
+          state.setHotbarSlot(next)
+        }
       })
     }
 
@@ -368,12 +500,34 @@ export class InputSystem {
       })
     }
 
-    // D-pad up = open inventory
+    // D-pad Up: hold >400ms = category ring, tap = toggle inventory
     if (justPressed(dpadUp, this.gamepadPrev.dpadUp)) {
-      this.getStore().then(({ useStore }) => {
-        const cur = useStore.getState().inventoryOpen
-        useStore.getState().setInventoryOpen(!cur)
-      })
+      this.dUpHoldStart = now
+      this.dUpRingOpened = false
+    }
+    if (dpadUp) {
+      if (this.dUpHoldStart > 0 && !this.dUpRingOpened && (now - this.dUpHoldStart) > 400) {
+        this.dUpRingOpened = true
+        this.getStore().then(({ useStore }) => {
+          useStore.getState().setRingOpen(true, 'categories')
+        })
+      }
+    }
+    if (justReleased(dpadUp, this.gamepadPrev.dpadUp)) {
+      if (!this.dUpRingOpened) {
+        // Short tap — toggle inventory
+        this.getStore().then(({ useStore }) => {
+          const cur = useStore.getState().inventoryOpen
+          useStore.getState().setInventoryOpen(!cur)
+        })
+      } else {
+        // Ring was opened — close it
+        this.getStore().then(({ useStore }) => {
+          useStore.getState().setRingOpen(false)
+        })
+      }
+      this.dUpHoldStart = 0
+      this.dUpRingOpened = false
     }
 
     // D-pad down = cycle block size down
@@ -384,11 +538,6 @@ export class InputSystem {
         const idx = sizes.indexOf(cur)
         useStore.getState().setSize(sizes[Math.max(0, idx - 1)])
       })
-    }
-
-    // Back = undo
-    if (justPressed(back, this.gamepadPrev.back)) {
-      this.engine.commandBus.undo()
     }
 
     // Start = toggle controls page
@@ -453,6 +602,7 @@ export class InputSystem {
   dispose(): void {
     document.removeEventListener('keydown', this.onKeyDown)
     document.removeEventListener('keyup', this.onKeyUp)
+    document.removeEventListener('dblclick', this.onDblClick)
     this.engine.renderer.domElement.removeEventListener('wheel', this.onWheel)
     this.controls?.dispose()
   }
