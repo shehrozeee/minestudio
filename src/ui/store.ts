@@ -47,7 +47,7 @@ const initialState: AppState = {
   ringType: null,
   selectedBlockDefId: 'cube',
   selectedSize: 'normal',
-  selectedColor: '#1a1a1a',
+  selectedColor: '#f4f5f7',
   inventoryOpen: false,
   inventoryTab: 'basic',
   objectCount: 0,
