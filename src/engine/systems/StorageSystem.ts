@@ -180,6 +180,17 @@ export class StorageSystem {
         this.engine.camera.position.set(gx * 2, gy * 2, gz * 2)
         this.engine.camera.rotation.y = save.camera.rotationY
       }
+
+      // Recompute plateCount from highest plate index in restored objects
+      const maxPlate = save.objects.reduce((m, o) => Math.max(m, o.plate ?? 0), 0)
+      const store = this.engine.store.getState()
+      const desiredPlateCount = Math.max(1, maxPlate + 1)
+      if (store.plateCount !== desiredPlateCount) {
+        // Add plates until count matches; never remove (lossy)
+        for (let i = store.plateCount; i < desiredPlateCount; i++) store.addPlate()
+      }
+      // Refresh plate visibility on render
+      this.engine.render.setActivePlate(this.engine.store.getState().activePlate)
     } catch {
       // bad save file
     }
