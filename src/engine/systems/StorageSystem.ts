@@ -1,9 +1,11 @@
+import * as THREE from 'three'
 import type { BuildEngine } from '../BuildEngine'
 import type { NamedSaveSlot, SaveFile } from '../types'
 import { ImportSystem } from './ImportSystem'
 import { BulkPlaceCommand } from '../commands/BulkPlaceCommand'
 
 const AUTO_SAVE_KEY = 'minestudio_autosave'
+const AUTO_SAVE_BACKUP_KEY = 'minestudio_autosave_backup'
 const SAVE_SLOTS_KEY = 'minestudio_slots'
 const SAVE_SLOTS_META_KEY = 'minestudio_slots_meta'
 const CURRENT_VERSION = 1
@@ -75,11 +77,23 @@ export class StorageSystem {
     try {
       const slots = this.loadSlots()
       const saveFile = this.buildSaveFile()
+      // SAFETY: warn if user is saving an empty state on top of an existing
+      // non-empty save (almost certainly a mistake — usually means restore failed)
+      if (saveFile.objects.length === 0) {
+        const existing = slots[slot]
+        if (existing && existing.data?.objects?.length > 0) {
+          const proceed = window.confirm(
+            `Slot ${slot + 1} ("${existing.name}") has ${existing.data.objects.length} blocks. ` +
+            `Current scene is empty. Overwrite anyway?`
+          )
+          if (!proceed) return
+        }
+      }
       slots[slot] = { name, data: saveFile, savedAt: Date.now() }
       localStorage.setItem(SAVE_SLOTS_KEY, JSON.stringify(slots))
       this.updateSlotMeta()
-    } catch {
-      // quota exceeded or private mode
+    } catch (err) {
+      console.warn('[MineStudio] saveToSlot failed:', err)
     }
   }
 
@@ -113,14 +127,13 @@ export class StorageSystem {
 
   buildSaveFile(): SaveFile {
     const state = this.engine.store.getState()
-    // Collect mates from connector system via public API.
-    // ConnectorSystem uses a different MateAnnotation shape (objectAId/objectBId vs
-    // connectorAId/connectorBId in types.ts). Cast through unknown to store them;
-    // the migration system handles reconciliation on load.
     const mates = this.engine.connector.getMates() as unknown as SaveFile['mates']
+    const q = this.engine.camera.quaternion
     return {
       version: CURRENT_VERSION,
-      objects: state.objects.map(o => ({ ...o })),
+      // Source of truth is engine.objects (PlaceCommand mutates this array).
+      // The store's `objects` array is leftover scaffolding never wired up.
+      objects: this.engine.objects.map(o => ({ ...o })),
       mates,
       bodies: state.bodyList,
       camera: {
@@ -129,7 +142,7 @@ export class StorageSystem {
           gy: this.engine.camera.position.y / 2,
           gz: this.engine.camera.position.z / 2,
         },
-        rotationY: this.engine.camera.rotation.y,
+        quaternion: [q.x, q.y, q.z, q.w],
       },
     }
   }
@@ -141,9 +154,29 @@ export class StorageSystem {
   saveToLocalStorage(): void {
     try {
       const data = this.buildSaveFile()
+      // SAFETY: never overwrite a non-empty autosave with an empty one.
+      // Prevents catastrophic data loss when restore fails silently and the
+      // empty state gets persisted on top of real work.
+      if (data.objects.length === 0) {
+        const existing = localStorage.getItem(AUTO_SAVE_KEY)
+        if (existing) {
+          try {
+            const prev = JSON.parse(existing) as { objects?: unknown[] }
+            if (Array.isArray(prev.objects) && prev.objects.length > 0) {
+              console.warn('[MineStudio] Refusing to overwrite non-empty autosave with empty state.')
+              return
+            }
+          } catch { /* fall through and overwrite a corrupted save */ }
+        }
+      }
+      // Keep one rotation as backup before overwriting
+      const prev = localStorage.getItem(AUTO_SAVE_KEY)
+      if (prev) {
+        try { localStorage.setItem(AUTO_SAVE_BACKUP_KEY, prev) } catch { /* quota */ }
+      }
       localStorage.setItem(AUTO_SAVE_KEY, JSON.stringify(data))
-    } catch {
-      // quota exceeded or private mode
+    } catch (err) {
+      console.warn('[MineStudio] saveToLocalStorage failed:', err)
     }
   }
 
@@ -182,19 +215,25 @@ export class StorageSystem {
       if (save.camera) {
         const { gx, gy, gz } = save.camera.position
         this.engine.camera.position.set(gx * 2, gy * 2, gz * 2)
-        this.engine.camera.rotation.y = save.camera.rotationY
+        if (save.camera.quaternion) {
+          // Preferred: deterministic restore from saved quaternion
+          this.engine.camera.quaternion.fromArray(save.camera.quaternion)
+        } else if (typeof save.camera.rotationY === 'number') {
+          // Legacy: just yaw, no pitch/roll. Build a YXZ euler with that yaw.
+          const e = new THREE.Euler(0, save.camera.rotationY, 0, 'YXZ')
+          this.engine.camera.quaternion.setFromEuler(e)
+        } else {
+          this.engine.camera.lookAt(0, this.engine.camera.position.y, 0)
+        }
       }
 
-      // Recompute plateCount from highest plate index in restored objects
+      // Recompute plateCount from highest plate index in restored objects.
+      // Set state directly (don't use addPlate — it side-effect-jumps activePlate).
       const maxPlate = save.objects.reduce((m, o) => Math.max(m, o.plate ?? 0), 0)
-      const store = this.engine.store.getState()
       const desiredPlateCount = Math.max(1, maxPlate + 1)
-      if (store.plateCount !== desiredPlateCount) {
-        // Add plates until count matches; never remove (lossy)
-        for (let i = store.plateCount; i < desiredPlateCount; i++) store.addPlate()
-      }
-      // Refresh plate visibility on render
-      this.engine.render.setActivePlate(this.engine.store.getState().activePlate)
+      this.engine.store.setState({ plateCount: desiredPlateCount, activePlate: 0 })
+      this.engine.render.setActivePlate(0)
+      console.info(`[MineStudio] Restored ${save.objects.length} objects across ${desiredPlateCount} plate(s).`)
     } catch (err) {
       console.error('[MineStudio] restoreFromSave failed:', err)
     }

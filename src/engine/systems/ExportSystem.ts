@@ -481,7 +481,9 @@ export class ExportSystem {
 
   async exportAll(format: 'stl-all' | 'stl-zip' | '3mf-all' | '3mf-selected'): Promise<void> {
     const state = this.engine.store.getState()
-    const objects = state.objects
+    // Source of truth is engine.objects (PlaceCommand mutates this array).
+    // store.objects is leftover scaffolding never wired up — always empty.
+    const objects = this.engine.objects
     const warnings = this.engine.validation.check(objects)
     const errors = warnings.filter(w => w.type === 'error')
     state.setValidationWarnings(warnings)
@@ -497,7 +499,7 @@ export class ExportSystem {
 
   async exportAnyway(format: 'stl-all' | 'stl-zip' | '3mf-all' | '3mf-selected'): Promise<void> {
     const state = this.engine.store.getState()
-    await this._doExport(format, state.objects, state.bodyList)
+    await this._doExport(format, this.engine.objects, state.bodyList)
   }
 
   private async _doExport(

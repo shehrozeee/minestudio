@@ -97,7 +97,11 @@ export interface SaveFile {
   objects: PlacedObject[]
   mates: MateAnnotation[]
   bodies: BodyDef[]
-  camera: { position: GridPos; rotationY: number }
+  camera: {
+    position: GridPos
+    rotationY?: number       // legacy — old saves only
+    quaternion?: [number, number, number, number]  // current — preferred
+  }
   customBlocks?: CustomBlockDef[]
 }
 

@@ -92,6 +92,8 @@ export class BuildEngine {
     this.commandBus.onChange(({ canUndo, canRedo }) => {
       this.render.sync(this.objects)
       this.world.syncLamps(this.objects)
+      // Mirror engine.objects → store.objects so React components see updates
+      this.store.setState({ objects: this.objects.map(o => ({ ...o })) })
       import('../ui/store').then(({ useStore }) => {
         useStore.getState().setUndoState({ canUndo, canRedo })
         useStore.getState().setObjectCount(
