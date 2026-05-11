@@ -2,7 +2,7 @@
 
 First-person 3D voxel builder that exports print-ready 3MF for the **Bambu Lab A1**. Block out a model in your browser, paint each piece, hit export, drop the file into Bambu Studio. Multi-color via AMS works automatically — every paint color becomes its own filament slot.
 
-> **Live demo:** https://minestudio.inniapps.com
+> **Live demo:** https://minestudio.inniapps.com (also https://minestudio.pages.dev)
 >
 > **License:** PolyForm Noncommercial 1.0.0 — free for personal, hobby, educational, and noncommercial organizational use. Commercial use requires a separate license.
 
