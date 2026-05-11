@@ -487,7 +487,10 @@ export class ExportSystem {
     state.setValidationWarnings(warnings)
     if (errors.length > 0) {
       window.dispatchEvent(new CustomEvent('minestudio:show-validation-dialog'))
-      return
+      const proceed = window.confirm(
+        `Export blocked by ${errors.length} error(s):\n\n${errors.map(e => '• ' + e.message).join('\n')}\n\nClick OK to export anyway, Cancel to fix first.`
+      )
+      if (!proceed) return
     }
     await this._doExport(format, objects, state.bodyList)
   }
