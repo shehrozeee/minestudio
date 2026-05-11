@@ -74,6 +74,14 @@ export function PauseMenu() {
     setSlots(updated)
   }
 
+  const handleLoad = (index: number) => {
+    const slot = slots[index]
+    if (!slot) return
+    if (!window.confirm(`Load "${slot.name}"? Current build will be replaced.`)) return
+    window.dispatchEvent(new CustomEvent('minestudio:load-slot', { detail: { slot: index } }))
+    setPauseMenuOpen(false)
+  }
+
   const handleControls = () => {
     setShowControls(true)
   }
@@ -136,6 +144,24 @@ export function PauseMenu() {
     fontFamily: 'inherit',
     flexShrink: 0,
   }
+  const loadBtnStyle: React.CSSProperties = {
+    background: 'rgba(0,213,99,0.15)',
+    border: '1px solid rgba(0,213,99,0.4)',
+    borderRadius: 5,
+    color: '#00d563',
+    cursor: 'pointer',
+    fontSize: 10,
+    padding: '4px 10px',
+    fontFamily: 'inherit',
+    flexShrink: 0,
+  }
+  const loadBtnDisabledStyle: React.CSSProperties = {
+    ...loadBtnStyle,
+    background: 'rgba(255,255,255,0.04)',
+    border: '1px solid #2a2f37',
+    color: '#3a3f47',
+    cursor: 'not-allowed',
+  }
 
   return (
     <div style={panelStyle}>
@@ -170,6 +196,13 @@ export function PauseMenu() {
               <span style={{ fontSize: 11, color: slot ? '#f4f5f7' : '#3a3f47', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {slot ? `${slot.name} · ${formatDate(slot.savedAt)}` : `Slot ${i + 1}: empty`}
               </span>
+              <button
+                onClick={() => slot && handleLoad(i)}
+                disabled={!slot}
+                style={slot ? loadBtnStyle : loadBtnDisabledStyle}
+              >
+                Load
+              </button>
               <button onClick={() => handleSave(i)} style={saveBtnStyle}>
                 Save
               </button>

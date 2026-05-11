@@ -150,11 +150,15 @@ export class StorageSystem {
   loadFromLocalStorage(): void {
     try {
       const raw = localStorage.getItem(AUTO_SAVE_KEY)
-      if (!raw) return
+      if (!raw) {
+        console.info('[MineStudio] No autosave found.')
+        return
+      }
       const data = JSON.parse(raw) as unknown
       this.restoreFromSave(data)
-    } catch {
-      // corrupted save — ignore
+      console.info('[MineStudio] Autosave restored.')
+    } catch (err) {
+      console.error('[MineStudio] Autosave restore failed:', err)
     }
   }
 
@@ -191,8 +195,8 @@ export class StorageSystem {
       }
       // Refresh plate visibility on render
       this.engine.render.setActivePlate(this.engine.store.getState().activePlate)
-    } catch {
-      // bad save file
+    } catch (err) {
+      console.error('[MineStudio] restoreFromSave failed:', err)
     }
   }
 
