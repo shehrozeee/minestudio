@@ -1,12 +1,12 @@
 import * as THREE from 'three'
 import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js'
 import type { BuildEngine } from '../BuildEngine'
-import { GRID_BASE } from '../grid'
+import { GRID_BASE, PLATE_CELLS } from '../grid'
 import { cycleColor, COLORS, getColorIndex } from '../registries/colors'
 
-const WALK_SPEED = 35
-const FLY_SPEED = 44   // 1.25× walk
-const FLY_VERTICAL_SPEED = 25
+const WALK_SPEED = 70           // doubled when GRID_BASE went 2→4
+const FLY_SPEED = 88            // 1.25× walk
+const FLY_VERTICAL_SPEED = 50   // vertical fly slower than horizontal for fine placement
 const GAMEPAD_DEAD = 0.15
 const GAMEPAD_LOOK_SPEED = 1.4   // rad/sec at full stick deflection
 const GAMEPAD_DOUBLE_TAP_MS = 400
@@ -423,7 +423,7 @@ export class InputSystem {
     // Clamp camera within build volume
     {
       const obj = this.engine.camera
-      const MAX = 128 * GRID_BASE + 60
+      const MAX = PLATE_CELLS * GRID_BASE + 60
       obj.position.x = Math.max(-MAX, Math.min(MAX, obj.position.x))
       obj.position.y = Math.max(2, Math.min(MAX, obj.position.y))
       obj.position.z = Math.max(-MAX, Math.min(MAX, obj.position.z))
@@ -600,7 +600,7 @@ export class InputSystem {
     if (this.keys.has('ControlLeft') || this.keys.has('ControlRight') || this.keys.has('KeyF'))
       camera.position.y -= speed * dt
 
-    const MAX = 128 * GRID_BASE + 60
+    const MAX = PLATE_CELLS * GRID_BASE + 60
     camera.position.x = Math.max(-MAX, Math.min(MAX, camera.position.x))
     camera.position.y = Math.max(2, Math.min(MAX, camera.position.y))
     camera.position.z = Math.max(-MAX, Math.min(MAX, camera.position.z))

@@ -1,6 +1,7 @@
 import { useStore } from '../store'
 import { getBlockDef } from '../../engine/registries/blocks'
 import type { BuildEngine } from '../../engine/BuildEngine'
+import { GRID_BASE } from '../../engine/grid'
 
 export function HUD({ engine }: { engine?: BuildEngine }) {
   const pos = useStore(s => s.playerPosition)
@@ -23,7 +24,7 @@ export function HUD({ engine }: { engine?: BuildEngine }) {
   const setActivePlate = useStore(s => s.setActivePlate)
   const addPlate = useStore(s => s.addPlate)
 
-  const mm = (g: number) => `${Math.round(g * 2)}mm`
+  const mm = (g: number) => `${Math.round(g * GRID_BASE)}mm`
   const warnCount = warnings.filter(w => w.type === 'warning').length
   const errCount  = warnings.filter(w => w.type === 'error').length
 

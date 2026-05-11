@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import type { BuildEngine } from '../BuildEngine'
 import type { NamedSaveSlot, SaveFile } from '../types'
+import { GRID_BASE } from '../grid'
 import { ImportSystem } from './ImportSystem'
 import { BulkPlaceCommand } from '../commands/BulkPlaceCommand'
 
@@ -138,9 +139,9 @@ export class StorageSystem {
       bodies: state.bodyList,
       camera: {
         position: {
-          gx: this.engine.camera.position.x / 2,
-          gy: this.engine.camera.position.y / 2,
-          gz: this.engine.camera.position.z / 2,
+          gx: this.engine.camera.position.x / GRID_BASE,
+          gy: this.engine.camera.position.y / GRID_BASE,
+          gz: this.engine.camera.position.z / GRID_BASE,
         },
         quaternion: [q.x, q.y, q.z, q.w],
       },
@@ -214,7 +215,7 @@ export class StorageSystem {
       // Restore camera
       if (save.camera) {
         const { gx, gy, gz } = save.camera.position
-        this.engine.camera.position.set(gx * 2, gy * 2, gz * 2)
+        this.engine.camera.position.set(gx * GRID_BASE, gy * GRID_BASE, gz * GRID_BASE)
         if (save.camera.quaternion) {
           // Preferred: deterministic restore from saved quaternion
           this.engine.camera.quaternion.fromArray(save.camera.quaternion)

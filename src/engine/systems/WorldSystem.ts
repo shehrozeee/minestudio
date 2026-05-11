@@ -1,12 +1,11 @@
 import * as THREE from 'three'
 import type { BuildEngine } from '../BuildEngine'
 import type { PlacedObject } from '../types'
-import { GRID_BASE, toWorld } from '../grid'
+import { GRID_BASE, PLATE_CELLS, toWorld } from '../grid'
 
-const PLATE_CELLS = 128
 const PLATE_SIZE = PLATE_CELLS * GRID_BASE
 
-export const PLAYER_HEIGHT = 28
+export const PLAYER_HEIGHT = 56
 
 export class WorldSystem {
   private engine: BuildEngine

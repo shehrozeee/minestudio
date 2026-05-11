@@ -1,7 +1,13 @@
 import * as THREE from 'three'
 import type { BlockSize, GridPos } from './types'
 
-export const GRID_BASE = 2
+// 4 mm per grid cell (was 2mm — too small to print reliably).
+// Block sizes scale: normal = 4mm cube, large = 8mm, xl = 12mm.
+export const GRID_BASE = 4
+
+// Build plate is 256 mm = PLATE_CELLS * GRID_BASE.
+// Halved from 128 cells when GRID_BASE doubled, so plate stays at 256mm.
+export const PLATE_CELLS = 64
 
 export const SIZE_IN_UNITS: Record<BlockSize, number> = {
   normal: 1,
