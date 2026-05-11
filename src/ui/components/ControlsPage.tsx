@@ -90,12 +90,13 @@ export function ControlsPage() {
         </h2>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 40px' }}>
-          {/* Left column */}
+          {/* Left column — keyboard / mouse */}
           <div>
             <Section title="Movement — Keyboard">
               <Row keys="WASD / Arrows" label="Walk / strafe" />
-              <Row keys="Space / R" label="Fly up" />
-              <Row keys="Ctrl / F" label="Fly down" />
+              <Row keys="Mouse" label="Look" />
+              <Row keys="Space" label="Fly up (in fly mode)" />
+              <Row keys="Ctrl / F" label="Fly down (in fly mode)" />
               <Row keys="0 0" label="Toggle fly mode" />
               <Row keys="Scroll" label="Cycle hotbar slot" />
             </Section>
@@ -103,63 +104,74 @@ export function ControlsPage() {
             <Section title="Building — Keyboard">
               <Row keys="LClick" label="Place block" />
               <Row keys="RClick / X" label="Delete block" />
-              <Row keys="[ ]" label="Size smaller / larger" />
+              <Row keys="[ ]" label="Block size — / +" />
               <Row keys="Q / E" label="Prev / next color" />
+              <Row keys="R" label="Rotate yaw (Y axis)" />
+              <Row keys="Shift+R" label="Rotate pitch (X axis)" />
+              <Row keys="Ctrl+R" label="Rotate roll (Z axis)" />
               <Row keys="P" label="Toggle paint mode" />
               <Row keys="N" label="Toggle negative mode" />
               <Row keys="G" label="Grab / move tool" />
               <Row keys="T (hold)" label="Tool ring" />
             </Section>
 
-            <Section title="Inventory / UI">
+            <Section title="Plates / Inventory / UI">
+              <Row keys="Ctrl+1..9" label="Switch plate" />
+              <Row keys="Ctrl+=" label="Add new plate" />
               <Row keys="Tab" label="Open / close inventory" />
               <Row keys="1–9" label="Select hotbar slot" />
               <Row keys="F1 / ?" label="Controls reference" />
-              <Row keys="Esc" label="Close overlays" />
+              <Row keys="Esc" label="Pause menu / close overlay" />
             </Section>
 
             <Section title="Undo / Save / Export">
               <Row keys="Ctrl+Z" label="Undo" />
               <Row keys="Ctrl+⇧Z" label="Redo" />
-              <Row keys="Ctrl+S" label="Save .minstudio" />
-              <Row keys="Ctrl+⇧E" label="Export STL zip (by body)" />
+              <Row keys="Ctrl+S" label="Save .minstudio file" />
+              <Row keys="Ctrl+⇧E" label="Export dialog (3MF / STL)" />
               <Row keys="Ctrl+⇧B" label="Bake CSG preview" />
               <Row keys="Ctrl+I" label="Import STL / GLB" />
             </Section>
           </div>
 
-          {/* Right column */}
+          {/* Right column — controller */}
           <div>
-            <Section title="Xbox Controller">
+            <Section title="Movement — Xbox Controller">
               <Row keys="L stick" label="Walk / strafe" />
               <Row keys="R stick" label="Look" />
-              <Row keys="RT" label="Place block (primary)" />
-              <Row keys="LT" label="Delete block (always)" />
-              <Row keys="A" label="Toggle fly mode" />
-              <Row keys="B B" label="Double-tap — toggle fly" />
-              <Row keys="X" label="Next color" />
-              <Row keys="Y" label="Cycle block size" />
-              <Row keys="LB / RB (fly)" label="Descend / ascend" />
-              <Row keys="LB / RB (walk)" label="Prev / next hotbar" />
-              <Row keys="D-pad ←→" label="Cycle hotbar slot" />
-              <Row keys="D-pad ↑" label="Open inventory" />
-              <Row keys="D-pad ↓" label="Block size smaller" />
-              <Row keys="Back" label="Undo" />
-              <Row keys="Start" label="Controls page" />
+              <Row keys="A" label="Start game (first press)" />
+              <Row keys="A A" label="Toggle fly mode" />
+              <Row keys="B B" label="Toggle fly mode (alt)" />
+              <Row keys="RB / LB (fly)" label="Rise / descend" />
             </Section>
 
-            <Section title="Tools">
-              <Row keys="place" label="Place selected block" />
-              <Row keys="erase" label="Remove aimed block" />
-              <Row keys="paint" label="Color block / face" />
-              <Row keys="eyedropper" label="Sample color" />
-              <Row keys="text" label="Emboss / deboss text" />
-              <Row keys="select" label="Grab + reposition" />
-              <Row keys="sink" label="Push block into adjacent" />
-              <Row keys="mate" label="Link compatible connectors" />
-              <Row keys="fillet" label="Auto-insert corner fillet" />
-              <Row keys="support" label="Manual support rod" />
-              <Row keys="measure" label="MM distance between points" />
+            <Section title="Building — Controller">
+              <Row keys="RT" label="Place block" />
+              <Row keys="LT" label="Erase block" />
+              <Row keys="Y" label="Rotate yaw (Y axis)" />
+              <Row keys="Back + Y" label="Rotate pitch (X axis)" />
+              <Row keys="Start + Y" label="Rotate roll (Z axis)" />
+              <Row keys="X (hold)" label="Tool ring — left stick aims, release to commit" />
+              <Row keys="D-pad ↓" label="Cycle block size" />
+              <Row keys="LB / RB (walk)" label="Hotbar prev / next" />
+              <Row keys="D-pad ←→" label="Hotbar OR color (in paint mode)" />
+            </Section>
+
+            <Section title="Inventory / Plates / Menu — Controller">
+              <Row keys="D-pad ↑ tap" label="Open inventory" />
+              <Row keys="D-pad ↑ hold" label="Category ring" />
+              <Row keys="D-pad in inv" label="Move cursor — A picks block" />
+              <Row keys="LB / RB in inv" label="Switch tab" />
+              <Row keys="Start" label="Pause menu (with Export button)" />
+              <Row keys="B" label="Close any open menu" />
+            </Section>
+
+            <Section title="Undo / Export / Misc — Controller">
+              <Row keys="Back" label="Undo" />
+              <Row keys="Back + A" label="Redo" />
+              <Row keys="Back + RT" label="Open export dialog" />
+              <Row keys="Back + LB" label="Toggle annotations" />
+              <Row keys="In export dialog" label="D-pad ↑↓ choose · A confirm · B cancel" />
             </Section>
           </div>
         </div>

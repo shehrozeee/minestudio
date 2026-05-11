@@ -29,7 +29,6 @@ export function ContextualHints() {
   const activeHints = HINT_REGISTRY
     .filter(h => h.condition(state))
     .flatMap(h => h.hints)
-    .slice(0, 4)
 
   return (
     <div style={{
