@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { useStore } from '../store'
 import type { ToolId } from '../../engine/types'
 
@@ -27,19 +27,21 @@ export function ToolRing() {
   const setRingOpen = useStore(s => s.setRingOpen)
   const setTool = useStore(s => s.setTool)
   const activeTool = useStore(s => s.selectedTool)
+  const hoveredIdx = useStore(s => s.ringHoverIdx)
+  const setRingHoverIdx = useStore(s => s.setRingHoverIdx)
   const angleRef = useRef<number | null>(null)
-  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null)
 
   useEffect(() => {
     // T key hold/tap is handled in InputSystem — ring closing on T up is handled here
     const onUp = (e: KeyboardEvent) => {
       if (e.code === 'KeyT') {
-        if (angleRef.current !== null) {
-          const idx = Math.round(((angleRef.current / (Math.PI * 2)) * 12 + 12)) % 12
+        const idx = useStore.getState().ringHoverIdx
+        if (idx !== null) {
           const tool = TOOLS[idx]
           if (tool) setTool(tool)
         }
         setRingOpen(false)
+        setRingHoverIdx(null)
         angleRef.current = null
       }
     }
@@ -47,11 +49,11 @@ export function ToolRing() {
     return () => {
       document.removeEventListener('keyup', onUp)
     }
-  }, [setRingOpen, setTool])
+  }, [setRingOpen, setTool, setRingHoverIdx])
 
   useEffect(() => {
     if (!ringOpen) {
-      setHoveredIdx(null)
+      setRingHoverIdx(null)
       return
     }
     const onMove = (e: MouseEvent) => {
@@ -59,13 +61,12 @@ export function ToolRing() {
       const cy = window.innerHeight / 2
       const angle = Math.atan2(e.clientY - cy, e.clientX - cx)
       angleRef.current = angle
-      // Compute hovered segment index
       const idx = Math.round(((angle / (Math.PI * 2)) * 12 + 12)) % 12
-      setHoveredIdx(idx)
+      setRingHoverIdx(idx)
     }
     window.addEventListener('mousemove', onMove)
     return () => window.removeEventListener('mousemove', onMove)
-  }, [ringOpen])
+  }, [ringOpen, setRingHoverIdx])
 
   if (!ringOpen) return null
 

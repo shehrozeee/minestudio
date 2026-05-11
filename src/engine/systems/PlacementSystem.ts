@@ -19,6 +19,9 @@ export class PlacementSystem {
   private ghostPos: { gx: number; gy: number; gz: number } | null = null
   private storeCache: typeof import('../../ui/store') | null = null
   private glowingMeshes: { mesh: THREE.Mesh; originalEmissive: THREE.Color }[] = []
+  // Aim highlight — wireframe outline shown around the targeted block
+  private aimHighlight: THREE.LineSegments | null = null
+  private aimHighlightForId: number | null = null
 
   constructor(engine: BuildEngine) {
     this.engine = engine
@@ -41,6 +44,7 @@ export class PlacementSystem {
       if (
         obj instanceof THREE.Mesh &&
         obj !== this.ghostMesh &&
+        obj.visible &&
         (obj.userData['isPlate'] === true || typeof obj.userData['objectId'] === 'number')
       ) {
         targets.push(obj)
@@ -50,7 +54,7 @@ export class PlacementSystem {
   }
 
   private castRay(): THREE.Intersection | null {
-    if (!this.engine.input.isLocked()) return null
+    if (!this.engine.input.isActive()) return null
     this.raycaster.setFromCamera(CENTER, this.engine.camera)
     const hits = this.raycaster.intersectObjects(this.getRaycastTargets(), false)
     return hits[0] ?? null
@@ -66,7 +70,7 @@ export class PlacementSystem {
   }
 
   private onLeftClick = (): void => {
-    if (!this.engine.input.isLocked()) return
+    if (!this.engine.input.isActive()) return
     const store = this.getStore()
     if (!store) return
     const state = store.useStore.getState()
@@ -103,14 +107,17 @@ export class PlacementSystem {
         defId,
         size: state.selectedSize,
         position: { ...this.ghostPos },
-        rotation: { x: 0 as 0, y: 0 as 0, z: 0 as 0 },
+        rotation: { ...state.placementRotation },
         color: state.selectedColor,
         isNegative: state.negativeMode,
         isPrintable: def.isPrintable,
         isSupport: false,
         storageKind: 'grid',
+        plate: state.activePlate,
       }),
     )
+    this.ghostPos = null
+    this.setGhostVisible(false)
   }
 
   private onRightClick = (e: MouseEvent): void => {
@@ -123,7 +130,10 @@ export class PlacementSystem {
   }
 
   private eraseAimed(): void {
-    if (!this.engine.input.isLocked()) return
+    if (!this.engine.input.isActive()) return
+    // Paint mode is non-destructive: never delete blocks
+    const tool = this.storeCache?.useStore.getState().selectedTool
+    if (tool === 'paint' || tool === 'eyedropper') return
     const hit = this.castRay()
     if (!hit) return
     const objectId = hit.object.userData['objectId'] as number | undefined
@@ -145,7 +155,16 @@ export class PlacementSystem {
       this.setGhostVisible(false)
       this.ghostPos = null
       this.clearGlows()
+      this.clearAimHighlight()
       return
+    }
+
+    // Aim highlight on the hovered block (skip plate)
+    const hitObjectId = hit.object.userData['objectId'] as number | undefined
+    if (typeof hitObjectId === 'number') {
+      this.updateAimHighlight(hit.object as THREE.Mesh, hitObjectId)
+    } else {
+      this.clearAimHighlight()
     }
 
     const pos = this.getPlacementPos(hit)
@@ -163,6 +182,37 @@ export class PlacementSystem {
     this.ghostPos = pos
     this.updateGhost(pos, defId, size, state.negativeMode)
     this.updateConnectorGlows()
+  }
+
+  private updateAimHighlight(targetMesh: THREE.Mesh, objectId: number): void {
+    const tool = this.storeCache?.useStore.getState().selectedTool
+    // Color hint: red for delete tools, yellow for paint, cyan for general
+    const color = tool === 'erase' ? 0xff3030 : tool === 'paint' ? 0xffd54a : 0x00e5ff
+
+    if (this.aimHighlightForId !== objectId || !this.aimHighlight) {
+      if (this.aimHighlight) {
+        this.engine.scene.remove(this.aimHighlight)
+        this.aimHighlight.geometry.dispose()
+        ;(this.aimHighlight.material as THREE.LineBasicMaterial).dispose()
+      }
+      const edges = new THREE.EdgesGeometry(targetMesh.geometry)
+      const mat = new THREE.LineBasicMaterial({ color, linewidth: 2, transparent: true, opacity: 0.95, depthTest: false })
+      this.aimHighlight = new THREE.LineSegments(edges, mat)
+      this.aimHighlight.renderOrder = 999
+      this.engine.scene.add(this.aimHighlight)
+      this.aimHighlightForId = objectId
+    } else {
+      ;(this.aimHighlight.material as THREE.LineBasicMaterial).color.setHex(color)
+    }
+    this.aimHighlight.position.copy(targetMesh.position)
+    this.aimHighlight.quaternion.copy(targetMesh.quaternion)
+    this.aimHighlight.scale.copy(targetMesh.scale)
+    this.aimHighlight.visible = true
+  }
+
+  private clearAimHighlight(): void {
+    if (this.aimHighlight) this.aimHighlight.visible = false
+    this.aimHighlightForId = null
   }
 
   private updateGhost(
@@ -204,6 +254,14 @@ export class PlacementSystem {
       pos.gy * GRID_BASE + half,
       pos.gz * GRID_BASE + half,
     )
+    const rot = this.storeCache?.useStore.getState().placementRotation
+    if (rot) {
+      this.ghostMesh.rotation.set(
+        (rot.x * Math.PI) / 180,
+        (rot.y * Math.PI) / 180,
+        (rot.z * Math.PI) / 180,
+      )
+    }
     this.ghostMesh.visible = true
   }
 
@@ -266,6 +324,12 @@ export class PlacementSystem {
     if (this.ghostMesh) {
       this.engine.scene.remove(this.ghostMesh)
       this.ghostMesh.geometry.dispose()
+    }
+    if (this.aimHighlight) {
+      this.engine.scene.remove(this.aimHighlight)
+      this.aimHighlight.geometry.dispose()
+      ;(this.aimHighlight.material as THREE.LineBasicMaterial).dispose()
+      this.aimHighlight = null
     }
     this.clearGlows()
   }

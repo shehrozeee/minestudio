@@ -7,12 +7,22 @@ import { toWorld, GRID_BASE, SIZE_IN_UNITS } from '../grid'
 export class RenderSystem {
   private engine: BuildEngine
   private meshMap = new Map<number, THREE.Mesh>()
+  private objectMap = new Map<number, PlacedObject>()
+  private activePlate = 0
 
   constructor(engine: BuildEngine) {
     this.engine = engine
   }
 
   init(): void {}
+
+  setActivePlate(idx: number): void {
+    this.activePlate = idx
+    for (const [id, mesh] of this.meshMap) {
+      const obj = this.objectMap.get(id)
+      mesh.visible = (obj?.plate ?? 0) === idx
+    }
+  }
 
   sync(objects: PlacedObject[]): void {
     const { scene } = this.engine
@@ -25,8 +35,11 @@ export class RenderSystem {
         if (mesh.geometry) mesh.geometry.dispose()
         if (mesh.material instanceof THREE.Material) mesh.material.dispose()
         this.meshMap.delete(id)
+        this.objectMap.delete(id)
       }
     }
+    // Refresh objectMap for live objects (so plate filter knows)
+    for (const obj of objects) this.objectMap.set(obj.id, obj)
 
     // Add meshes for new objects
     for (const obj of objects) {
@@ -36,8 +49,11 @@ export class RenderSystem {
 
       const unitSize = GRID_BASE * SIZE_IN_UNITS[obj.size]
       const geo = def.makeGeometry(unitSize)
+      const isLamp = obj.defId === 'torch' || obj.defId === 'lantern'
       const mat = new THREE.MeshStandardMaterial({
-        color: obj.color,
+        color: isLamp ? 0xffe6a8 : obj.color,
+        emissive: isLamp ? (obj.defId === 'torch' ? 0xff7822 : 0xfff0c0) : 0x000000,
+        emissiveIntensity: isLamp ? 1.4 : 0,
         transparent: obj.isNegative,
         opacity: obj.isNegative ? 0.4 : 1,
         wireframe: obj.isNegative,
@@ -52,6 +68,7 @@ export class RenderSystem {
       mesh.rotation.z = (obj.rotation.z * Math.PI) / 180
 
       mesh.userData['objectId'] = obj.id
+      mesh.visible = (obj.plate ?? 0) === this.activePlate
       scene.add(mesh)
       this.meshMap.set(obj.id, mesh)
     }

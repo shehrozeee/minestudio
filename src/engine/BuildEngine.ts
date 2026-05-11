@@ -43,7 +43,7 @@ export class BuildEngine {
   constructor(canvas: HTMLCanvasElement) {
     this.scene = new THREE.Scene()
     this.camera = new THREE.PerspectiveCamera(
-      75,
+      55,
       canvas.clientWidth / canvas.clientHeight,
       0.5,
       3000
@@ -97,10 +97,15 @@ export class BuildEngine {
 
     // Sync annotation visibility from store to ConnectorSystem
     let prevAnnotationsVisible = this.store.getState().annotationsVisible
+    let prevActivePlate = this.store.getState().activePlate
     this.store.subscribe((state) => {
       if (state.annotationsVisible !== prevAnnotationsVisible) {
         prevAnnotationsVisible = state.annotationsVisible
         this.connector.setAnnotationsVisible(state.annotationsVisible)
+      }
+      if (state.activePlate !== prevActivePlate) {
+        prevActivePlate = state.activePlate
+        this.render.setActivePlate(state.activePlate)
       }
     })
 

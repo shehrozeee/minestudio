@@ -18,6 +18,10 @@ export function HUD({ engine }: { engine?: BuildEngine }) {
   const bodyList = useStore(s => s.bodyList)
   const warnings = useStore(s => s.validationWarnings)
   const def = getBlockDef(hotbarSlots[selectedSlot] ?? 'cube')
+  const activePlate = useStore(s => s.activePlate)
+  const plateCount = useStore(s => s.plateCount)
+  const setActivePlate = useStore(s => s.setActivePlate)
+  const addPlate = useStore(s => s.addPlate)
 
   const mm = (g: number) => `${Math.round(g * 2)}mm`
   const warnCount = warnings.filter(w => w.type === 'warning').length
@@ -73,6 +77,35 @@ export function HUD({ engine }: { engine?: BuildEngine }) {
       )}
       <span style={{ color: undo ? '#00d563' : '#3a3f47' }}>↩</span>
       <span style={{ color: redo ? '#00d563' : '#3a3f47' }}>↪</span>
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, pointerEvents: 'auto' }}>
+        <span style={{ color: '#8b8f97' }}>PLATE</span>
+        {Array.from({ length: plateCount }).map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setActivePlate(i)}
+            title={`Plate ${i + 1} (Ctrl+${i + 1})`}
+            style={{
+              width: 18, height: 18, borderRadius: 4,
+              background: i === activePlate ? '#00d563' : 'rgba(255,255,255,0.06)',
+              color: i === activePlate ? '#0d0f12' : '#c8cdd5',
+              border: '1px solid #2a2f37', cursor: 'pointer',
+              fontFamily: 'inherit', fontSize: 10, fontWeight: 700, padding: 0,
+            }}
+          >{i + 1}</button>
+        ))}
+        {plateCount < 9 && (
+          <button
+            onClick={addPlate}
+            title="Add plate (Ctrl+=)"
+            style={{
+              width: 18, height: 18, borderRadius: 4,
+              background: 'rgba(255,255,255,0.04)', color: '#8b8f97',
+              border: '1px dashed #2a2f37', cursor: 'pointer',
+              fontFamily: 'inherit', fontSize: 12, padding: 0,
+            }}
+          >+</button>
+        )}
+      </span>
     </div>
   )
 }

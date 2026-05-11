@@ -38,6 +38,8 @@ export interface PlacedObject {
   geometryBuffer?: ArrayBuffer
   scaleBlocks?: number
   bodyName?: string
+  /** Plate index (0-based). Default 0. */
+  plate?: number
 }
 
 export interface BlockDef {
@@ -137,4 +139,8 @@ export interface AppState {
   activeFirstMateId: number | null
   importPreviewObjects: PlacedObject[] | null
   pauseMenuOpen: boolean
+  ringHoverIdx: number | null
+  placementRotation: BlockRotation
+  activePlate: number
+  plateCount: number
 }

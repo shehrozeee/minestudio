@@ -20,6 +20,24 @@ export function App() {
   const engineRef = useRef<BuildEngine | null>(null)
   const [ready, setReady] = useState(false)
   const [exportDialogOpen, setExportDialogOpen] = useState(false)
+  const [showStartScreen, setShowStartScreen] = useState(true)
+  const [gamepadConnected, setGamepadConnected] = useState(false)
+
+  useEffect(() => {
+    const onStarted = () => setShowStartScreen(false)
+    const onConnect = () => setGamepadConnected(true)
+    const onDisconnect = () => setGamepadConnected(
+      Array.from(navigator.getGamepads?.() ?? []).some(p => p?.connected)
+    )
+    window.addEventListener('minestudio:started', onStarted)
+    window.addEventListener('gamepadconnected', onConnect)
+    window.addEventListener('gamepaddisconnected', onDisconnect)
+    return () => {
+      window.removeEventListener('minestudio:started', onStarted)
+      window.removeEventListener('gamepadconnected', onConnect)
+      window.removeEventListener('gamepaddisconnected', onDisconnect)
+    }
+  }, [])
 
   const showControls = useStore(s => s.showControls)
   const inventoryOpen = useStore(s => s.inventoryOpen)
@@ -31,6 +49,7 @@ export function App() {
     const engine = new BuildEngine(canvasRef.current)
     engineRef.current = engine
     engine.init()
+    if (typeof window !== 'undefined') (window as unknown as { __engine: BuildEngine }).__engine = engine
     setReady(true)
 
     const onKeyDown = (e: KeyboardEvent) => {
@@ -116,6 +135,28 @@ export function App() {
           <BodyNamePanel />
           <BodyList />
           {importPreviewObjects && <ImportPreview />}
+        </div>
+      )}
+      {showStartScreen && (
+        <div style={{
+          position: 'absolute', inset: 0, display: 'flex',
+          flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          background: 'rgba(0,0,0,0.6)', color: '#fff', zIndex: 50, userSelect: 'none',
+        }}>
+          <div style={{ fontSize: 32, fontWeight: 800, letterSpacing: 3, marginBottom: 12 }}>MineStudio</div>
+          {gamepadConnected ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 18, opacity: 0.9 }}>
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                width: 32, height: 32, borderRadius: '50%',
+                background: '#4caf50', color: '#fff', fontWeight: 700, fontSize: 16,
+              }}>A</span>
+              <span>Press A to play</span>
+            </div>
+          ) : (
+            <div style={{ fontSize: 18, opacity: 0.9 }}>Click anywhere to play</div>
+          )}
+          <div style={{ fontSize: 13, opacity: 0.45, marginTop: 10 }}>ESC to pause · ? for controls</div>
         </div>
       )}
       {showControls && <ControlsPage />}

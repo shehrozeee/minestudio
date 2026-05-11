@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import type { BlockDef } from '../types'
 
 export const BLOCK_REGISTRY: BlockDef[] = [
@@ -321,7 +322,15 @@ export const BLOCK_REGISTRY: BlockDef[] = [
     isPrintable: false,
     exportBehavior: 'standard',
     availableSizes: ['normal'],
-    makeGeometry: (s) => new THREE.CylinderGeometry(s * 0.1, s * 0.1, s * 0.6, 6),
+    // Wood handle + flame (sphere on top). Merged into one geometry.
+    makeGeometry: (s) => {
+      const handle = new THREE.CylinderGeometry(s * 0.08, s * 0.08, s * 0.55, 8)
+      handle.translate(0, -s * 0.05, 0)
+      const flame = new THREE.SphereGeometry(s * 0.16, 10, 8)
+      flame.translate(0, s * 0.3, 0)
+      const merged = mergeGeometries([handle, flame])
+      return merged ?? handle
+    },
   },
   {
     id: 'lantern',
@@ -330,7 +339,18 @@ export const BLOCK_REGISTRY: BlockDef[] = [
     isPrintable: false,
     exportBehavior: 'standard',
     availableSizes: ['normal', 'large'],
-    makeGeometry: (s) => new THREE.BoxGeometry(s * 0.4, s * 0.5, s * 0.4),
+    // Cage box + bright glowing core inside + handle on top
+    makeGeometry: (s) => {
+      const cage = new THREE.BoxGeometry(s * 0.44, s * 0.44, s * 0.44)
+      const core = new THREE.SphereGeometry(s * 0.18, 10, 8)
+      const top = new THREE.CylinderGeometry(s * 0.08, s * 0.08, s * 0.08, 8)
+      top.translate(0, s * 0.26, 0)
+      const ring = new THREE.TorusGeometry(s * 0.06, s * 0.015, 6, 12)
+      ring.translate(0, s * 0.32, 0)
+      ring.rotateX(Math.PI / 2)
+      const merged = mergeGeometries([cage, core, top, ring])
+      return merged ?? cage
+    },
   },
 
   // ── Partial ────────────────────────────────────────────────────────────────

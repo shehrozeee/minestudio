@@ -1,8 +1,16 @@
 {
   "name": "minestudio",
-  "private": true,
+  "private": false,
   "version": "0.1.0",
   "type": "module",
+  "description": "First-person 3D voxel modeling tool that exports printable 3MF files for the Bambu Lab A1.",
+  "author": "shehrozeee",
+  "license": "SEE LICENSE IN LICENSE",
+  "homepage": "https://minestudio.inniapps.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shehrozeee/minestudio.git"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",

@@ -1,9 +1,34 @@
+# Dependencies
 node_modules/
+
+# Build output
 dist/
+build/
+
+# Logs and temp
+*.log
 .DS_Store
 *.local
+
+# Editor
+.vscode/
+.idea/
+
+# Test artifacts (Playwright screenshots etc.)
 .playwright-mcp/
+audit-*.png
 *.png
 *.jpg
 *.jpeg
 minestudio-initial.png
+
+# Reference 3MF files used for format reverse-engineering — not redistributable
+example 3mf files/
+
+# Claude Code workspace settings
+.claude/
+
+# Environment
+.env
+.env.local
+.env.*.local

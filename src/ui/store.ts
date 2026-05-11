@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { AppState, ToolId, BlockSize, BlockCategory, GridPos, BodyDef, ValidationWarning, SupportMode, RingType, PlacedObject } from '../engine/types'
+import type { AppState, ToolId, BlockSize, BlockCategory, GridPos, BodyDef, ValidationWarning, SupportMode, RingType, PlacedObject, BlockRotation } from '../engine/types'
 
 interface StoreActions {
   setTool: (tool: ToolId) => void
@@ -30,6 +30,12 @@ interface StoreActions {
   setImportPreviewObjects: (objs: PlacedObject[] | null) => void
   setPauseMenuOpen: (v: boolean) => void
   setSinkDepth: (depth: number) => void
+  setRingHoverIdx: (idx: number | null) => void
+  setPlacementRotation: (rot: BlockRotation) => void
+  cyclePlacementRotation: (axis: 'x' | 'y' | 'z') => void
+  setActivePlate: (idx: number) => void
+  addPlate: () => void
+  removePlate: (idx: number) => void
 }
 
 type Store = AppState & StoreActions
@@ -57,7 +63,7 @@ const initialState: AppState = {
   validationWarnings: [],
   csgPending: false,
   negativeMode: false,
-  hotbarSlots: ['cube', 'slab', 'sphere', 'cylinder', 'cone', 'torus', 'wedge', 'cube', 'cube'],
+  hotbarSlots: ['cube', 'slab', 'sphere', 'cylinder', 'wedge', 'ball-joint', 'socket', 'peg-1x', 'chain-hook'],
   selectedSlot: 0,
   showControls: false,
   selectedObjectId: null,
@@ -66,6 +72,10 @@ const initialState: AppState = {
   activeFirstMateId: null,
   importPreviewObjects: null,
   pauseMenuOpen: false,
+  ringHoverIdx: null,
+  placementRotation: { x: 0, y: 0, z: 0 },
+  activePlate: 0,
+  plateCount: 1,
 }
 
 export const useStore = create<Store>()((set) => ({
@@ -102,6 +112,34 @@ export const useStore = create<Store>()((set) => ({
   setImportPreviewObjects: (importPreviewObjects) => set({ importPreviewObjects }),
   setPauseMenuOpen: (pauseMenuOpen) => set({ pauseMenuOpen }),
   setSinkDepth: (sinkDepth) => set({ sinkDepth }),
+  setRingHoverIdx: (ringHoverIdx) => set({ ringHoverIdx }),
+  setPlacementRotation: (placementRotation) => set({ placementRotation }),
+  cyclePlacementRotation: (axis) => set((state) => {
+    const ANGLES = [0, 90, 180, 270] as const
+    const cur = state.placementRotation[axis]
+    const next = ANGLES[(ANGLES.indexOf(cur as 0 | 90 | 180 | 270) + 1) % 4]
+    return { placementRotation: { ...state.placementRotation, [axis]: next } }
+  }),
+  setActivePlate: (activePlate) => set((state) => ({
+    activePlate: Math.max(0, Math.min(state.plateCount - 1, activePlate)),
+  })),
+  addPlate: () => set((state) => ({
+    plateCount: Math.min(9, state.plateCount + 1),
+    activePlate: Math.min(9, state.plateCount), // jump to the new plate
+  })),
+  removePlate: (idx) => set((state) => {
+    if (state.plateCount <= 1) return state
+    const newCount = state.plateCount - 1
+    // Re-pack objects: blocks on removed plate are deleted; higher plates shift down
+    const newObjects = state.objects
+      .filter(o => (o.plate ?? 0) !== idx)
+      .map(o => (o.plate ?? 0) > idx ? { ...o, plate: (o.plate ?? 0) - 1 } : o)
+    return {
+      plateCount: newCount,
+      activePlate: Math.min(newCount - 1, state.activePlate > idx ? state.activePlate - 1 : state.activePlate),
+      objects: newObjects,
+    }
+  }),
 }))
 
 export function resetStore(): void {
