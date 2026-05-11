@@ -14,6 +14,11 @@ import { StorageSystem } from './systems/StorageSystem'
 import { MigrationSystem } from './systems/MigrationSystem'
 import { ImportSystem } from './systems/ImportSystem'
 import { useStore } from '../ui/store'
+import type { AppState } from './types'
+
+function anyMenuOpen(s: AppState): boolean {
+  return s.inventoryOpen || s.pauseMenuOpen || s.showControls || s.exportDialogOpen
+}
 
 export class BuildEngine {
   readonly scene: THREE.Scene
@@ -98,6 +103,7 @@ export class BuildEngine {
     // Sync annotation visibility from store to ConnectorSystem
     let prevAnnotationsVisible = this.store.getState().annotationsVisible
     let prevActivePlate = this.store.getState().activePlate
+    let prevAnyMenu = anyMenuOpen(this.store.getState())
     this.store.subscribe((state) => {
       if (state.annotationsVisible !== prevAnnotationsVisible) {
         prevAnnotationsVisible = state.annotationsVisible
@@ -107,6 +113,12 @@ export class BuildEngine {
         prevActivePlate = state.activePlate
         this.render.setActivePlate(state.activePlate)
       }
+      // Release pointer lock when any menu opens (so clicks hit the modal, not the canvas underneath)
+      const nowMenu = anyMenuOpen(state)
+      if (nowMenu && !prevAnyMenu && this.input.isLocked()) {
+        document.exitPointerLock?.()
+      }
+      prevAnyMenu = nowMenu
     })
 
     document.addEventListener('keydown', (e) => {

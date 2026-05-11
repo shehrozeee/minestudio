@@ -39,7 +39,7 @@ export class InputSystem {
   private keys = new Set<string>()
   private flyMode = false
   private store: typeof import('../../ui/store') | null = null
-  private _docClickHandler: (() => void) | null = null
+  private _docClickHandler: ((e: Event) => void) | null = null
   private _cameraEuler = new THREE.Euler(0, 0, 0, 'YXZ')
 
   // Sticky: true once the user activates the game (click, A button, or any stick movement)
@@ -73,10 +73,13 @@ export class InputSystem {
     const { camera, renderer } = this.engine
     this.controls = new PointerLockControls(camera, renderer.domElement)
 
-    // Document-level click → lock pointer (mouse path)
-    this._docClickHandler = () => {
+    // Lock pointer ONLY when click is directly on the canvas (not bubbling from a UI element).
+    // Otherwise modal buttons would re-acquire pointer lock on every click.
+    this._docClickHandler = (e: Event) => {
       if (this.controls?.isLocked) return
       if (this._anyMenuOpen()) return
+      const target = e.target as HTMLElement | null
+      if (target !== this.engine.renderer.domElement) return
       this._markStarted()
       this.controls.lock()
     }

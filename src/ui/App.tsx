@@ -148,6 +148,7 @@ export function App() {
           position: 'absolute', inset: 0, display: 'flex',
           flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           background: 'rgba(0,0,0,0.6)', color: '#fff', zIndex: 50, userSelect: 'none',
+          pointerEvents: 'none',
         }}>
           <div style={{ fontSize: 32, fontWeight: 800, letterSpacing: 3, marginBottom: 12 }}>MineStudio</div>
           {gamepadConnected ? (
