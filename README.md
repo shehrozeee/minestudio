@@ -63,6 +63,8 @@ Open http://localhost:5173. Click anywhere (or press **A** on a controller) to s
 | Undo / Redo | Ctrl+Z / Ctrl+Shift+Z |
 | Export | Ctrl+Shift+E |
 | Save | Ctrl+S |
+| Export dialog | Ctrl+Shift+E (or open Pause menu) |
+| Export dialog nav | Arrow keys + Enter |
 
 ### Xbox controller
 
@@ -86,6 +88,8 @@ Open http://localhost:5173. Click anywhere (or press **A** on a controller) to s
 | Undo | Back |
 | Redo | Back + A |
 | Toggle annotations | Back + LB |
+| Export dialog | Back + RT (or open Pause menu via Start) |
+| Export dialog nav | D-pad ↑↓ to pick · A to confirm · B to cancel |
 
 ## Export
 
