@@ -61,6 +61,8 @@ const CONTENT_TYPES_XML = `<?xml version="1.0" encoding="UTF-8"?>
 <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
   <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
   <Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/>
+  <Default Extension="config" ContentType="text/plain"/>
+  <Default Extension="json" ContentType="application/json"/>
 </Types>`
 
 const ROOT_RELS_XML = `<?xml version="1.0" encoding="UTF-8"?>
@@ -134,7 +136,13 @@ interface ExportPlate {
   meshes: { color: string; mesh: ExtractedMesh; bodyName: string }[]
 }
 
-function build3MFXml(objectsAllPlates: PlacedObject[]): string {
+interface BuildArtifacts {
+  modelXml: string
+  modelSettingsXml: string
+  projectSettingsJson: string
+}
+
+function build3MFXml(objectsAllPlates: PlacedObject[]): BuildArtifacts {
   const byPlate = groupByPlateAndBody(objectsAllPlates)
   const plateNums = [...byPlate.keys()].sort((a, b) => a - b)
 
@@ -159,6 +167,8 @@ function build3MFXml(objectsAllPlates: PlacedObject[]): string {
   let nextOid = 2
   let objectsXml = ''
   let buildXml = ''
+  // Track each emitted <object>'s id and AMS slot for model_settings.config
+  const emittedObjects: { oid: number; extruder: number; bodyName: string }[] = []
 
   for (let i = 0; i < plateNums.length; i++) {
     const plateNum = i + 1
@@ -175,6 +185,8 @@ function build3MFXml(objectsAllPlates: PlacedObject[]): string {
 
         const oid = nextOid++
         const pindex = colorIndex.get(color) ?? 0
+        const extruder = pindex + 1  // AMS slots are 1-based in Bambu Studio
+        emittedObjects.push({ oid, extruder, bodyName })
         objectsXml += `  <object id="${oid}" type="model" pid="1" pindex="${pindex}">
     <mesh>
       <vertices>
@@ -198,7 +210,7 @@ ${mesh.trisXML}      </triangles>
     materialsXml += `    <base name="Color ${i + 1}" displaycolor="#${hex}FF"/>\n`
   }
 
-  return `<?xml version="1.0" encoding="UTF-8"?>
+  const modelXml = `<?xml version="1.0" encoding="UTF-8"?>
 <model unit="millimeter" xml:lang="en-US" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02" xmlns:m="http://schemas.microsoft.com/3dmanufacturing/material/2015/02">
   <metadata name="Application">MineStudio</metadata>
   <metadata name="CreationDate">${new Date().toISOString().slice(0, 10)}</metadata>
@@ -210,6 +222,58 @@ ${objectsXml}  </resources>
   <build>
 ${buildXml}  </build>
 </model>`
+
+  // Bambu Studio reads filament assignment from model_settings.config (per-object
+  // <metadata key="extruder" value="N"/>) and the actual color list from
+  // project_settings.config "filament_colour".
+  let modelSettingsObjects = ''
+  for (const o of emittedObjects) {
+    modelSettingsObjects += `  <object id="${o.oid}">
+    <metadata key="name" value="${o.bodyName}"/>
+    <metadata key="extruder" value="${o.extruder}"/>
+    <part id="1" subtype="normal_part">
+      <metadata key="name" value="${o.bodyName}"/>
+      <metadata key="matrix" value="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1"/>
+      <metadata key="source_object_id" value="${o.oid}"/>
+      <metadata key="source_volume_id" value="0"/>
+    </part>
+  </object>
+`
+  }
+  // Single plate listing — instances reference each emitted object
+  let plateInstances = ''
+  for (const o of emittedObjects) {
+    plateInstances += `    <model_instance>
+      <metadata key="object_id" value="${o.oid}"/>
+      <metadata key="instance_id" value="0"/>
+    </model_instance>
+`
+  }
+  const filamentMaps = palette.map((_, i) => i + 1).join(' ')
+  const modelSettingsXml = `<?xml version="1.0" encoding="UTF-8"?>
+<config>
+${modelSettingsObjects}  <plate>
+    <metadata key="plater_id" value="1"/>
+    <metadata key="plater_name" value="Plate 1"/>
+    <metadata key="locked" value="false"/>
+    <metadata key="filament_maps" value="${filamentMaps}"/>
+${plateInstances}  </plate>
+</config>`
+
+  // project_settings.config — filament_colour drives the AMS slot colors
+  const projectSettings: Record<string, unknown> = {
+    filament_colour: palette,
+    filament_settings_id: palette.map(() => 'Generic PLA @BBL A1'),
+    filament_type: palette.map(() => 'PLA'),
+    nozzle_diameter: ['0.4'],
+    printer_settings_id: 'Bambu Lab A1 0.4 nozzle',
+    printer_model: 'Bambu Lab A1',
+    print_settings_id: '0.20mm Standard @BBL A1',
+    version: '02.05.00.00',
+  }
+  const projectSettingsJson = JSON.stringify(projectSettings, null, 4)
+
+  return { modelXml, modelSettingsXml, projectSettingsJson }
 }
 
 // ─── ExportSystem class ───────────────────────────────────────────────────
@@ -265,12 +329,15 @@ export class ExportSystem {
       return
     }
 
-    const modelXml = build3MFXml(printable)
+    const built = build3MFXml(printable)
 
     const zip = new JSZip()
     zip.file('[Content_Types].xml', CONTENT_TYPES_XML)
     zip.folder('_rels')!.file('.rels', ROOT_RELS_XML)
-    zip.folder('3D')!.file('3dmodel.model', modelXml)
+    zip.folder('3D')!.file('3dmodel.model', built.modelXml)
+    const meta = zip.folder('Metadata')!
+    meta.file('model_settings.config', built.modelSettingsXml)
+    meta.file('project_settings.config', built.projectSettingsJson)
 
     const blob = await zip.generateAsync({
       type: 'blob',
