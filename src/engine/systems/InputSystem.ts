@@ -561,7 +561,8 @@ export class InputSystem {
       this.getStore().then(({ useStore }) => {
         const sizes = ['normal', 'large', 'xl'] as const
         const idx = sizes.indexOf(useStore.getState().selectedSize)
-        useStore.getState().setSize(sizes[Math.max(0, idx - 1)])
+        // Cycle forward so the user can ALWAYS change size with one button
+        useStore.getState().setSize(sizes[(idx + 1) % sizes.length])
       })
     }
 

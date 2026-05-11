@@ -132,6 +132,29 @@ export function App() {
         <canvas ref={canvasRef} />
       </div>
       {ready && (
+        <div
+          aria-hidden
+          style={{
+            position: 'absolute', left: '50%', top: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: 20, height: 20,
+            pointerEvents: 'none', zIndex: 30,
+            display: showStartScreen ? 'none' : 'block',
+          }}
+        >
+          <div style={{ position: 'absolute', left: 9, top: 0, width: 2, height: 8,
+            background: 'rgba(255,255,255,0.85)', boxShadow: '0 0 2px rgba(0,0,0,0.7)' }} />
+          <div style={{ position: 'absolute', left: 9, top: 12, width: 2, height: 8,
+            background: 'rgba(255,255,255,0.85)', boxShadow: '0 0 2px rgba(0,0,0,0.7)' }} />
+          <div style={{ position: 'absolute', left: 0, top: 9, width: 8, height: 2,
+            background: 'rgba(255,255,255,0.85)', boxShadow: '0 0 2px rgba(0,0,0,0.7)' }} />
+          <div style={{ position: 'absolute', left: 12, top: 9, width: 8, height: 2,
+            background: 'rgba(255,255,255,0.85)', boxShadow: '0 0 2px rgba(0,0,0,0.7)' }} />
+          <div style={{ position: 'absolute', left: 9, top: 9, width: 2, height: 2,
+            background: '#00d563', boxShadow: '0 0 3px rgba(0,213,99,0.9)' }} />
+        </div>
+      )}
+      {ready && (
         <div className="ui-overlay">
           <HUD engine={engineRef.current ?? undefined} />
           <ContextualHints />
