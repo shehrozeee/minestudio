@@ -32,3 +32,6 @@ example 3mf files/
 .env
 .env.local
 .env.*.local
+
+# TS incremental build state
+tsconfig.tsbuildinfo
