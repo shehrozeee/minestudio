@@ -19,7 +19,8 @@ export function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const engineRef = useRef<BuildEngine | null>(null)
   const [ready, setReady] = useState(false)
-  const [exportDialogOpen, setExportDialogOpen] = useState(false)
+  const exportDialogOpen = useStore(s => s.exportDialogOpen)
+  const setExportDialogOpen = useStore(s => s.setExportDialogOpen)
   const [showStartScreen, setShowStartScreen] = useState(true)
   const [gamepadConnected, setGamepadConnected] = useState(false)
 
@@ -78,7 +79,12 @@ export function App() {
     }
     // Use capture so we can stop propagation before ExportSystem hears it
     document.addEventListener('keydown', onKeyDown, true)
-    return () => document.removeEventListener('keydown', onKeyDown, true)
+    const onOpenExport = () => setExportDialogOpen(true)
+    window.addEventListener('minestudio:open-export-dialog', onOpenExport)
+    return () => {
+      document.removeEventListener('keydown', onKeyDown, true)
+      window.removeEventListener('minestudio:open-export-dialog', onOpenExport)
+    }
   }, [])
 
   // Controls toggle + global Escape handling

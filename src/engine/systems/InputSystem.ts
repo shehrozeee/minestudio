@@ -112,7 +112,7 @@ export class InputSystem {
   private _anyMenuOpen(): boolean {
     const state = this.store?.useStore.getState()
     if (!state) return false
-    return state.inventoryOpen || state.pauseMenuOpen || state.showControls
+    return state.inventoryOpen || state.pauseMenuOpen || state.showControls || state.exportDialogOpen
   }
 
   /** Pointer lock is held (mouse capture). Used for mouse-look + keyboard movement. */
@@ -305,6 +305,7 @@ export class InputSystem {
     if (justPressed(b, prev.b)) {
       const state = this.store?.useStore.getState()
       if (state) {
+        if (state.exportDialogOpen) { state.setExportDialogOpen(false); writePrev(); return }
         if (state.inventoryOpen) { state.setInventoryOpen(false); writePrev(); return }
         if (state.showControls) { state.setShowControls(false); writePrev(); return }
         if (state.pauseMenuOpen) { state.setPauseMenuOpen(false); writePrev(); return }
@@ -329,7 +330,6 @@ export class InputSystem {
       if (justPressed(dpadUp, prev.dpadUp))      fire('ArrowUp')
       if (justPressed(dpadDown, prev.dpadDown))  fire('ArrowDown')
       if (justPressed(a, prev.a))                fire('Enter')
-      // LB/RB cycle tabs
       if (justPressed(lb, prev.lb) || justPressed(rb, prev.rb)) {
         const TABS: import('../types').BlockCategory[] = ['basic', 'round', 'partial', 'connector', 'utility']
         const cur = TABS.indexOf(stateNow.inventoryTab)
@@ -337,6 +337,16 @@ export class InputSystem {
         const next = TABS[(cur + dir + TABS.length) % TABS.length]
         stateNow.setInventoryOpen(true, next)
       }
+      writePrev()
+      return
+    }
+
+    // ── Export dialog navigation (when open) ──
+    if (stateNow?.exportDialogOpen) {
+      const fire = (key: string) => document.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }))
+      if (justPressed(dpadUp, prev.dpadUp))     fire('ArrowUp')
+      if (justPressed(dpadDown, prev.dpadDown)) fire('ArrowDown')
+      if (justPressed(a, prev.a))               fire('Enter')
       writePrev()
       return
     }
@@ -418,12 +428,17 @@ export class InputSystem {
 
     // ── Buttons ──
 
+    // Back+RT = open export dialog (chord takes priority over plain RT place)
+    const backRtCombo = back && justPressed(rt, prev.rt)
+    if (backRtCombo) {
+      window.dispatchEvent(new CustomEvent('minestudio:open-export-dialog'))
+    }
     // RT = place
-    if (justPressed(rt, prev.rt)) {
+    else if (justPressed(rt, prev.rt)) {
       this.engine.renderer.domElement.dispatchEvent(new MouseEvent('click', { bubbles: true }))
     }
     // LT = delete
-    if (justPressed(lt, prev.lt)) {
+    if (justPressed(lt, prev.lt) && !back) {
       this.engine.renderer.domElement.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }))
     }
 
@@ -434,7 +449,7 @@ export class InputSystem {
       this.getStore().then(({ useStore }) => useStore.getState().setAnnotationsVisible(!useStore.getState().annotationsVisible))
     }
     // Back alone = undo. Skip if Back is being chorded with another button.
-    if (justPressed(back, prev.back) && !a && !y && !lb) this.engine.commandBus.undo()
+    if (justPressed(back, prev.back) && !a && !y && !lb && !rt && !lt) this.engine.commandBus.undo()
 
     // A double-tap = fly toggle (skip if Back+A combo)
     if (!backACombo && justPressed(a, prev.a)) {

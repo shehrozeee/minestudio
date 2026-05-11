@@ -21,14 +21,26 @@ export function ExportDialog({ open, onClose, onExport }: ExportDialogProps) {
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === 'Escape') { e.preventDefault(); onClose(); return }
+      if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
         e.preventDefault()
-        onClose()
+        setSelectedFormat(cur => {
+          const i = FORMAT_OPTIONS.findIndex(o => o.id === cur)
+          return FORMAT_OPTIONS[(i + 1) % FORMAT_OPTIONS.length].id
+        })
       }
+      if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+        e.preventDefault()
+        setSelectedFormat(cur => {
+          const i = FORMAT_OPTIONS.findIndex(o => o.id === cur)
+          return FORMAT_OPTIONS[(i - 1 + FORMAT_OPTIONS.length) % FORMAT_OPTIONS.length].id
+        })
+      }
+      if (e.key === 'Enter') { e.preventDefault(); onExport(selectedFormat); onClose() }
     }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
-  }, [open, onClose])
+  }, [open, onClose, onExport, selectedFormat])
 
   if (!open) return null
 

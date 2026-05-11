@@ -29,6 +29,7 @@ interface StoreActions {
   setActiveFirstMateId: (id: number | null) => void
   setImportPreviewObjects: (objs: PlacedObject[] | null) => void
   setPauseMenuOpen: (v: boolean) => void
+  setExportDialogOpen: (v: boolean) => void
   setSinkDepth: (depth: number) => void
   setRingHoverIdx: (idx: number | null) => void
   setPlacementRotation: (rot: BlockRotation) => void
@@ -72,6 +73,7 @@ const initialState: AppState = {
   activeFirstMateId: null,
   importPreviewObjects: null,
   pauseMenuOpen: false,
+  exportDialogOpen: false,
   ringHoverIdx: null,
   placementRotation: { x: 0, y: 0, z: 0 },
   activePlate: 0,
@@ -111,6 +113,7 @@ export const useStore = create<Store>()((set) => ({
   setActiveFirstMateId: (activeFirstMateId) => set({ activeFirstMateId }),
   setImportPreviewObjects: (importPreviewObjects) => set({ importPreviewObjects }),
   setPauseMenuOpen: (pauseMenuOpen) => set({ pauseMenuOpen }),
+  setExportDialogOpen: (exportDialogOpen) => set({ exportDialogOpen }),
   setSinkDepth: (sinkDepth) => set({ sinkDepth }),
   setRingHoverIdx: (ringHoverIdx) => set({ ringHoverIdx }),
   setPlacementRotation: (placementRotation) => set({ placementRotation }),

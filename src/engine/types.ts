@@ -139,6 +139,7 @@ export interface AppState {
   activeFirstMateId: number | null
   importPreviewObjects: PlacedObject[] | null
   pauseMenuOpen: boolean
+  exportDialogOpen: boolean
   ringHoverIdx: number | null
   placementRotation: BlockRotation
   activePlate: number

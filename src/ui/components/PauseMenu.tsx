@@ -78,6 +78,11 @@ export function PauseMenu() {
     setShowControls(true)
   }
 
+  const handleExport = () => {
+    setPauseMenuOpen(false)
+    window.dispatchEvent(new CustomEvent('minestudio:open-export-dialog'))
+  }
+
   const handleQuit = () => {
     if (window.confirm('Quit to browser? Unsaved progress will be lost.')) {
       window.location.reload()
@@ -171,6 +176,14 @@ export function PauseMenu() {
             </div>
           ))}
         </div>
+
+        {/* Export */}
+        <button
+          onClick={handleExport}
+          style={{ ...btnBase, background: 'rgba(255,159,64,0.12)', border: '1px solid rgba(255,159,64,0.4)', color: '#ff9f40' }}
+        >
+          Export 3D Print Files…
+        </button>
 
         {/* Bottom actions */}
         <div style={{ display: 'flex', gap: 8, width: '100%' }}>
