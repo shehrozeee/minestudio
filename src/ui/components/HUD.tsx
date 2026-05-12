@@ -2,6 +2,7 @@ import { useStore } from '../store'
 import { getBlockDef } from '../../engine/registries/blocks'
 import type { BuildEngine } from '../../engine/BuildEngine'
 import { GRID_BASE } from '../../engine/grid'
+import { buildPalette } from '../../engine/systems/ExportSystem'
 
 export function HUD({ engine }: { engine?: BuildEngine }) {
   const pos = useStore(s => s.playerPosition)
@@ -27,6 +28,12 @@ export function HUD({ engine }: { engine?: BuildEngine }) {
   const mm = (g: number) => `${Math.round(g * GRID_BASE)}mm`
   const warnCount = warnings.filter(w => w.type === 'warning').length
   const errCount  = warnings.filter(w => w.type === 'error').length
+  const objects = useStore(s => s.objects)
+  // Same palette ordering ExportSystem uses on the 3MF/STL output.
+  // Slot N in this strip = extruder N in Bambu Studio for the next export.
+  const amsPalette = objects.length > 0
+    ? buildPalette(objects.filter(o => o.isPrintable && !o.isNegative)).palette
+    : []
 
   return (
     <div style={{
@@ -78,6 +85,23 @@ export function HUD({ engine }: { engine?: BuildEngine }) {
       )}
       <span style={{ color: undo ? '#00d563' : '#3a3f47' }}>↩</span>
       <span style={{ color: redo ? '#00d563' : '#3a3f47' }}>↪</span>
+      {amsPalette.length > 0 && (
+        <span
+          title="AMS slot mapping for the next 3MF export. Slot N here = extruder N in Bambu Studio. Load matching filament into each AMS slot to print the colors you painted."
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
+        >
+          <span style={{ color: '#8b8f97' }}>AMS</span>
+          {amsPalette.map((hex, i) => (
+            <span key={hex} style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
+              <span style={{ color: '#8b8f97', fontSize: 9 }}>{i + 1}</span>
+              <span style={{
+                display: 'inline-block', width: 10, height: 10, borderRadius: 2,
+                background: hex, border: '1px solid #444',
+              }} />
+            </span>
+          ))}
+        </span>
+      )}
       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, pointerEvents: 'auto' }}>
         <span style={{ color: '#8b8f97' }}>PLATE</span>
         {Array.from({ length: plateCount }).map((_, i) => (

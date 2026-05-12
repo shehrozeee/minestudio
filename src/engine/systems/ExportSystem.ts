@@ -3,8 +3,9 @@ import { STLExporter } from 'three/examples/jsm/exporters/STLExporter.js'
 import JSZip from 'jszip'
 import type { BuildEngine } from '../BuildEngine'
 import type { BodyDef, PlacedObject } from '../types'
-import { toWorld, GRID_BASE, SIZE_IN_UNITS } from '../grid'
-import { getBlockDef } from '../registries/blocks'
+import { SIZE_IN_UNITS } from '../grid'
+import { COLORS } from '../registries/colors'
+import type { CSGSystem } from './CSGSystem'
 
 // ─── Pure helpers (testable) ──────────────────────────────────────────────
 
@@ -55,6 +56,57 @@ function clusterByColor(objects: PlacedObject[]): PlacedObject[][] {
   return [...byColor.values()]
 }
 
+/** Two grid AABBs are connected if they share a face OR overlap volumetrically. */
+export function aabbConnected(a: PlacedObject, b: PlacedObject): boolean {
+  const aS = SIZE_IN_UNITS[a.size]
+  const bS = SIZE_IN_UNITS[b.size]
+  const ax1 = a.position.gx, ax2 = a.position.gx + aS
+  const ay1 = a.position.gy, ay2 = a.position.gy + aS
+  const az1 = a.position.gz, az2 = a.position.gz + aS
+  const bx1 = b.position.gx, bx2 = b.position.gx + bS
+  const by1 = b.position.gy, by2 = b.position.gy + bS
+  const bz1 = b.position.gz, bz2 = b.position.gz + bS
+  // Closed-interval overlap on every axis (touching counts).
+  return ax2 >= bx1 && bx2 >= ax1
+      && ay2 >= by1 && by2 >= ay1
+      && az2 >= bz1 && bz2 >= az1
+}
+
+/**
+ * Partition a list of blocks into connected components by face/edge adjacency.
+ * Each component is a maximal set of blocks reachable by AABB touching.
+ */
+export function connectedComponents(blocks: PlacedObject[]): PlacedObject[][] {
+  const n = blocks.length
+  if (n === 0) return []
+  // Build adjacency lists. O(n^2) — fine for plate-scale (low hundreds).
+  const adj: number[][] = Array.from({ length: n }, () => [])
+  for (let i = 0; i < n; i++) {
+    for (let j = i + 1; j < n; j++) {
+      if (aabbConnected(blocks[i], blocks[j])) {
+        adj[i].push(j)
+        adj[j].push(i)
+      }
+    }
+  }
+  const seen = new Array<boolean>(n).fill(false)
+  const components: PlacedObject[][] = []
+  for (let i = 0; i < n; i++) {
+    if (seen[i]) continue
+    const comp: PlacedObject[] = []
+    const stack: number[] = [i]
+    while (stack.length) {
+      const k = stack.pop()!
+      if (seen[k]) continue
+      seen[k] = true
+      comp.push(blocks[k])
+      for (const m of adj[k]) if (!seen[m]) stack.push(m)
+    }
+    components.push(comp)
+  }
+  return components
+}
+
 // ─── 3MF static metadata ──────────────────────────────────────────────────
 
 const CONTENT_TYPES_XML = `<?xml version="1.0" encoding="UTF-8"?>
@@ -78,60 +130,35 @@ interface ExtractedMesh {
 }
 
 /**
- * Extract one merged mesh's XML from a list of objects (their geometry merged).
- * `geoOverrides` lets callers supply a pre-carved geometry per object id (used
- * to apply negative-block CSG subtraction before triangulating).
+ * Extract 3MF vertices+triangles from a single pre-built world-space mesh
+ * (e.g. the output of CSGSystem.unionAndCarve — already in absolute coords,
+ * already CSG-unioned and CSG-carved). Y-up → Z-up + reversed winding for
+ * Bambu compatibility.
  */
-function buildMeshXML(
-  objects: PlacedObject[],
-  geoOverrides?: Map<number, THREE.BufferGeometry>,
-): ExtractedMesh {
+function buildMeshXMLFromWorldMesh(mesh: THREE.Mesh): ExtractedMesh {
   let vertsXML = ''
   let trisXML = ''
-  let vOff = 0
+  mesh.updateMatrixWorld(true)
+  const transformed = (mesh.geometry as THREE.BufferGeometry).clone()
+  transformed.applyMatrix4(mesh.matrixWorld)
+  const pos = transformed.getAttribute('position') as THREE.BufferAttribute | undefined
+  if (!pos) return { vertsXML: '', trisXML: '' }
 
-  for (const obj of objects) {
-    const def = getBlockDef(obj.defId)
-    if (!def) continue
-    const unitSize = GRID_BASE * SIZE_IN_UNITS[obj.size]
-    const geo = geoOverrides?.get(obj.id) ?? def.makeGeometry(unitSize)
-
-    // Apply position + rotation
-    const tmp = new THREE.Mesh(geo)
-    const wp = toWorld(obj.position)
-    const half = unitSize / 2
-    tmp.position.set(wp.x + half, wp.y + half, wp.z + half)
-    tmp.rotation.x = (obj.rotation.x * Math.PI) / 180
-    tmp.rotation.y = (obj.rotation.y * Math.PI) / 180
-    tmp.rotation.z = (obj.rotation.z * Math.PI) / 180
-    tmp.updateMatrixWorld(true)
-    const transformed = geo.clone()
-    transformed.applyMatrix4(tmp.matrixWorld)
-
-    const pos = transformed.getAttribute('position') as THREE.BufferAttribute | undefined
-    if (!pos) continue
-
-    // Vertices: Y-up → Z-up via (x, -z, y)
-    for (let k = 0; k < pos.count; k++) {
-      const x = pos.getX(k), y = pos.getY(k), z = pos.getZ(k)
-      vertsXML += `      <vertex x="${x.toFixed(4)}" y="${(-z).toFixed(4)}" z="${y.toFixed(4)}"/>\n`
-    }
-
-    // Triangles: REVERSED winding (v1, v3, v2) for Bambu compatibility after Y-up→Z-up
-    const ix = transformed.getIndex()
-    if (ix) {
-      const ia = ix.array
-      for (let k = 0; k < ia.length; k += 3) {
-        trisXML += `      <triangle v1="${ia[k] + vOff}" v2="${ia[k + 2] + vOff}" v3="${ia[k + 1] + vOff}"/>\n`
-      }
-    } else {
-      for (let k = 0; k < pos.count; k += 3) {
-        trisXML += `      <triangle v1="${k + vOff}" v2="${k + 2 + vOff}" v3="${k + 1 + vOff}"/>\n`
-      }
-    }
-    vOff += pos.count
+  for (let k = 0; k < pos.count; k++) {
+    const x = pos.getX(k), y = pos.getY(k), z = pos.getZ(k)
+    vertsXML += `      <vertex x="${x.toFixed(4)}" y="${(-z).toFixed(4)}" z="${y.toFixed(4)}"/>\n`
   }
-
+  const ix = transformed.getIndex()
+  if (ix) {
+    const ia = ix.array
+    for (let k = 0; k < ia.length; k += 3) {
+      trisXML += `      <triangle v1="${ia[k]}" v2="${ia[k + 2]}" v3="${ia[k + 1]}"/>\n`
+    }
+  } else {
+    for (let k = 0; k < pos.count; k += 3) {
+      trisXML += `      <triangle v1="${k}" v2="${k + 2}" v3="${k + 1}"/>\n`
+    }
+  }
   return { vertsXML, trisXML }
 }
 
@@ -149,30 +176,45 @@ interface BuildArtifacts {
   projectSettingsJson: string
 }
 
-function build3MFXml(
+/**
+ * Build palette ordered by canonical COLOR_REGISTRY index, then by hex for
+ * any non-registry colors. This makes the AMS slot mapping stable per color
+ * across exports — slot N is always the same color in your scenes.
+ *
+ * Exported so the HUD can render the same mapping users will get in Bambu.
+ */
+export function buildPalette(objectsAllPlates: PlacedObject[]): { palette: string[]; colorIndex: Map<string, number> } {
+  const usedColors = new Set<string>()
+  for (const o of objectsAllPlates) {
+    usedColors.add((o.color || '#000000').toUpperCase())
+  }
+  const registryOrder = new Map<string, number>()
+  for (let i = 0; i < COLORS.length; i++) {
+    registryOrder.set(COLORS[i].hex.toUpperCase(), i)
+  }
+  const sorted = [...usedColors].sort((a, b) => {
+    const ai = registryOrder.get(a) ?? Number.MAX_SAFE_INTEGER
+    const bi = registryOrder.get(b) ?? Number.MAX_SAFE_INTEGER
+    if (ai !== bi) return ai - bi
+    return a.localeCompare(b)
+  })
+  const palette = sorted.length > 0 ? sorted : ['#FFFFFF']
+  const colorIndex = new Map<string, number>()
+  for (let i = 0; i < palette.length; i++) colorIndex.set(palette[i], i)
+  return { palette, colorIndex }
+}
+
+async function build3MFXml(
   objectsAllPlates: PlacedObject[],
-  geoOverrides?: Map<number, THREE.BufferGeometry>,
-): BuildArtifacts {
+  csg: CSGSystem,
+  allNegatives: PlacedObject[],
+): Promise<BuildArtifacts> {
   const byPlate = groupByPlateAndBody(objectsAllPlates)
   const plateNums = [...byPlate.keys()].sort((a, b) => a - b)
 
-  // Build deduped color palette across ALL plates (one basematerials list)
-  const palette: string[] = []
-  const colorIndex = new Map<string, number>()
-  for (const objs of byPlate.values()) {
-    for (const list of objs.values()) {
-      for (const o of list) {
-        const c = (o.color || '#000000').toUpperCase()
-        if (!colorIndex.has(c)) {
-          colorIndex.set(c, palette.length)
-          palette.push(c)
-        }
-      }
-    }
-  }
-  if (palette.length === 0) palette.push('#FFFFFF')
+  const { palette, colorIndex } = buildPalette(objectsAllPlates)
 
-  // Build all per-plate, per-body, per-color clusters
+  // Build all per-plate, per-body, per-color, per-connected-component meshes.
   const plates: ExportPlate[] = []
   let nextOid = 2
   let objectsXml = ''
@@ -189,15 +231,20 @@ function build3MFXml(
       const colorClusters = clusterByColor(bodyObjs)
       for (const cluster of colorClusters) {
         const color = (cluster[0].color || '#000000').toUpperCase()
-        const mesh = buildMeshXML(cluster, geoOverrides)
-        if (!mesh.vertsXML || !mesh.trisXML) continue
-        plateBucket.meshes.push({ color, mesh, bodyName })
+        // Connected components: each becomes a single fused solid in 3MF.
+        const components = connectedComponents(cluster)
+        for (const comp of components) {
+          const worldMesh = await csg.unionAndCarve(comp, allNegatives)
+          if (!worldMesh) continue
+          const mesh = buildMeshXMLFromWorldMesh(worldMesh)
+          if (!mesh.vertsXML || !mesh.trisXML) continue
+          plateBucket.meshes.push({ color, mesh, bodyName })
 
-        const oid = nextOid++
-        const pindex = colorIndex.get(color) ?? 0
-        const extruder = pindex + 1  // AMS slots are 1-based in Bambu Studio
-        emittedObjects.push({ oid, extruder, bodyName })
-        objectsXml += `  <object id="${oid}" type="model" pid="1" pindex="${pindex}">
+          const oid = nextOid++
+          const pindex = colorIndex.get(color) ?? 0
+          const extruder = pindex + 1  // AMS slots are 1-based in Bambu Studio
+          emittedObjects.push({ oid, extruder, bodyName })
+          objectsXml += `  <object id="${oid}" type="model" pid="1" pindex="${pindex}">
     <mesh>
       <vertices>
 ${mesh.vertsXML}      </vertices>
@@ -206,8 +253,9 @@ ${mesh.trisXML}      </triangles>
     </mesh>
   </object>
 `
-        // Identity transform — geometry is already in absolute world coords
-        buildXml += `    <item objectid="${oid}" transform="1 0 0 0 1 0 0 0 1 0 0 0"/>\n`
+          // Identity transform — geometry is already in absolute world coords
+          buildXml += `    <item objectid="${oid}" transform="1 0 0 0 1 0 0 0 1 0 0 0"/>\n`
+        }
       }
     }
     plates.push(plateBucket)
@@ -306,57 +354,30 @@ export class ExportSystem {
   }
 
   // ── STL helpers ────────────────────────────────────────────────────────
-  private buildMeshForObject(
-    obj: PlacedObject,
-    geoOverride?: THREE.BufferGeometry,
-  ): THREE.Mesh | null {
-    const def = getBlockDef(obj.defId)
-    if (!def) return null
-    const unitSize = GRID_BASE * SIZE_IN_UNITS[obj.size]
-    const geo = geoOverride ?? def.makeGeometry(unitSize)
-    const mesh = new THREE.Mesh(geo)
-    const wp = toWorld(obj.position)
-    const half = unitSize / 2
-    mesh.position.set(wp.x + half, wp.y + half, wp.z + half)
-    mesh.rotation.x = (obj.rotation.x * Math.PI) / 180
-    mesh.rotation.y = (obj.rotation.y * Math.PI) / 180
-    mesh.rotation.z = (obj.rotation.z * Math.PI) / 180
-    return mesh
-  }
-
-  private sceneForObjects(
-    objects: PlacedObject[],
-    geoOverrides?: Map<number, THREE.BufferGeometry>,
-  ): THREE.Scene {
-    const scene = new THREE.Scene()
-    for (const obj of objects) {
-      const mesh = this.buildMeshForObject(obj, geoOverrides?.get(obj.id))
-      if (mesh) scene.add(mesh)
-    }
-    return scene
-  }
 
   /**
-   * Compute per-positive carved geometries by subtracting overlapping negatives.
-   * Returns an empty map if no negatives exist (the caller falls back to
-   * default geometry).
+   * Build a scene where each connected component of same-color blocks is
+   * CSG-unioned into one solid mesh (with overlapping negatives carved).
+   * The STL output is then a bag of fused solids, not adjacent cubes.
    */
-  private async buildCarveOverrides(
-    positives: PlacedObject[],
+  private async sceneFromUnions(
+    objects: PlacedObject[],
     allObjects: PlacedObject[],
-  ): Promise<Map<number, THREE.BufferGeometry>> {
+  ): Promise<THREE.Scene> {
     const negatives = allObjects.filter(o => o.isNegative)
-    const out = new Map<number, THREE.BufferGeometry>()
-    if (negatives.length === 0) return out
-    for (const pos of positives) {
-      try {
-        const carved = await this.engine.csg.carveOne(pos, negatives)
-        if (carved) out.set(pos.id, carved)
-      } catch (err) {
-        console.warn('[MineStudio] carveOne failed for object', pos.id, err)
+    const scene = new THREE.Scene()
+    const byPlate = groupByPlateAndBody(objects)
+    for (const [, groups] of byPlate) {
+      for (const [, bodyObjs] of groups) {
+        for (const cluster of clusterByColor(bodyObjs)) {
+          for (const comp of connectedComponents(cluster)) {
+            const mesh = await this.engine.csg.unionAndCarve(comp, negatives)
+            if (mesh) scene.add(mesh)
+          }
+        }
       }
     }
-    return out
+    return scene
   }
 
   // ── 3MF export ────────────────────────────────────────────────────────
@@ -367,11 +388,13 @@ export class ExportSystem {
       alert('Nothing to export — place some blocks first.')
       return
     }
+    const negatives = objects.filter(o => o.isNegative)
 
-    // Apply CSG: subtract overlapping negatives from each positive before
-    // writing geometry. Empty map = no negatives, fast path.
-    const carveOverrides = await this.buildCarveOverrides(printable, objects)
-    const built = build3MFXml(printable, carveOverrides)
+    // Each connected component (same-color same-body adjacent blocks) is
+    // CSG-unioned into a single solid mesh, with overlapping negatives carved
+    // out at the same time. Bambu Studio then sees one watertight <object>
+    // per component — splittable, paintable, AMS-routable.
+    const built = await build3MFXml(printable, this.engine.csg, negatives)
 
     const zip = new JSZip()
     zip.file('[Content_Types].xml', CONTENT_TYPES_XML)
@@ -425,47 +448,36 @@ export class ExportSystem {
     }
 
     if (format === '3mf-all' || format === '3mf-selected') {
-      // export3MF handles its own carving (path may be called directly elsewhere).
       await this.export3MF(printable, bodies)
     } else if (format === 'stl-all') {
-      // Carve negatives into positives before STL writes them out.
-      const carve = await this.buildCarveOverrides(printable, objects)
-      this.exportSTL(printable, carve)
+      await this.exportSTL(printable)
     } else {
-      const carve = await this.buildCarveOverrides(printable, objects)
-      await this.exportSTLZip(printable, carve)
+      await this.exportSTLZip(printable)
     }
   }
 
   // ── STL exports ──────────────────────────────────────────────────────
 
-  exportSTL(
-    printableObjects?: PlacedObject[],
-    carveOverrides?: Map<number, THREE.BufferGeometry>,
-  ): void {
+  async exportSTL(printableObjects?: PlacedObject[]): Promise<void> {
     const objects = printableObjects ?? this.engine.objects.filter(o => o.isPrintable && !o.isNegative)
     if (objects.length === 0) {
       alert('Nothing to export — place some blocks first.')
       return
     }
-    const scene = this.sceneForObjects(objects, carveOverrides)
+    // CSG-union per connected component + carve overlapping negatives.
+    const scene = await this.sceneFromUnions(objects, this.engine.objects)
     const stl = this.stlExporter.parse(scene, { binary: false })
     this.downloadText(stl as string, `minestudio_export_${Date.now()}.stl`, 'text/plain')
   }
 
-  async exportSTLZip(
-    printableObjects?: PlacedObject[],
-    carveOverrides?: Map<number, THREE.BufferGeometry>,
-  ): Promise<void> {
+  async exportSTLZip(printableObjects?: PlacedObject[]): Promise<void> {
     const objects = printableObjects ?? this.engine.objects.filter(o => o.isPrintable && !o.isNegative)
     const byPlate = groupByPlateAndBody(objects)
     if (byPlate.size === 0) {
       alert('Nothing to export — place some blocks first.')
       return
     }
-    // If caller didn't pre-bake the carve, do it now so negatives still apply
-    // when this method is called directly (e.g. the Ctrl+Shift+E shortcut).
-    const overrides = carveOverrides ?? await this.buildCarveOverrides(objects, this.engine.objects)
+    const negatives = this.engine.objects.filter(o => o.isNegative)
 
     const zip = new JSZip()
     const plateNums = [...byPlate.keys()].sort((a, b) => a - b)
@@ -482,7 +494,14 @@ export class ExportSystem {
         let suffix = 1
         while (usedNames.has(`${baseKey}/${fileName}`)) fileName = `${rawName}_${suffix++}`
         usedNames.add(`${baseKey}/${fileName}`)
-        const scene = this.sceneForObjects(objs, overrides)
+        // Build a scene of unioned-then-carved meshes for this body.
+        const scene = new THREE.Scene()
+        for (const cluster of clusterByColor(objs)) {
+          for (const comp of connectedComponents(cluster)) {
+            const mesh = await this.engine.csg.unionAndCarve(comp, negatives)
+            if (mesh) scene.add(mesh)
+          }
+        }
         const stl = this.stlExporter.parse(scene, { binary: false }) as string
         folder.file(`${fileName}.stl`, stl)
       }

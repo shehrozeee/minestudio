@@ -202,6 +202,73 @@ export class CSGSystem {
   }
 
   /**
+   * Union a group of positive blocks (typically a connected component of same
+   * color) and subtract any overlapping negatives. Returns a Three.js Mesh in
+   * world space (identity local transform — geometry already absolute).
+   *
+   * For a single-block group with no overlapping negatives, returns the plain
+   * mesh without invoking CSG (fast path).
+   */
+  async unionAndCarve(
+    positives: PlacedObject[],
+    allNegatives: PlacedObject[],
+  ): Promise<THREE.Mesh | null> {
+    if (positives.length === 0) return null
+    await this.ensureLoaded()
+
+    // Overlapping negatives — those whose AABB touches at least one positive.
+    const overlapping = allNegatives.filter(neg =>
+      positives.some(pos => this.aabbIntersects(pos, neg)),
+    )
+
+    // Fast path: single block, no negatives — skip CSG entirely.
+    if (positives.length === 1 && overlapping.length === 0) {
+      const def = getBlockDef(positives[0].defId)
+      if (!def) return null
+      const unitSize = GRID_BASE * SIZE_IN_UNITS[positives[0].size]
+      const geo = def.makeGeometry(unitSize)
+      const mesh = new THREE.Mesh(geo)
+      const wp = toWorld(positives[0].position)
+      const half = unitSize / 2
+      mesh.position.set(wp.x + half, wp.y + half, wp.z + half)
+      mesh.rotation.x = (positives[0].rotation.x * Math.PI) / 180
+      mesh.rotation.y = (positives[0].rotation.y * Math.PI) / 180
+      mesh.rotation.z = (positives[0].rotation.z * Math.PI) / 180
+      mesh.updateMatrixWorld(true)
+      const baked = geo.clone()
+      baked.applyMatrix4(mesh.matrixWorld)
+      const out = new THREE.Mesh(baked)
+      out.updateMatrixWorld(true)
+      return out
+    }
+
+    // Union all positives
+    let result: Brush | null = null
+    for (const obj of positives) {
+      const brush = this.buildBrush(obj)
+      if (!brush) continue
+      if (!result) result = brush
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      else result = (this.evaluator as any).evaluate(result, brush, this.ADDITION_OP)
+    }
+    if (!result) return null
+
+    // Subtract overlapping negatives
+    for (const neg of overlapping) {
+      const brush = this.buildBrush(neg)
+      if (!brush) continue
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      result = (this.evaluator as any).evaluate(result, brush, this.SUBTRACTION_OP)
+    }
+
+    // Wrap as a plain Mesh in world space (geometry is already absolute coords)
+    const geo = (result as THREE.Mesh).geometry.clone()
+    const mesh = new THREE.Mesh(geo)
+    mesh.updateMatrixWorld(true)
+    return mesh
+  }
+
+  /**
    * Per-positive carve: returns a geometry for `positive` with all overlapping
    * negatives subtracted. Returns null if not ready or nothing to subtract.
    */
