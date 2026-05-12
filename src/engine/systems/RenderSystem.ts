@@ -9,6 +9,10 @@ export class RenderSystem {
   private meshMap = new Map<number, THREE.Mesh>()
   private objectMap = new Map<number, PlacedObject>()
   private activePlate = 0
+  // Live CSG preview: when set, individual printable positives are hidden and
+  // this single mesh is shown instead. Negatives still render as wireframes
+  // so the user can see where carving is happening.
+  private csgPreviewMesh: THREE.Mesh | null = null
 
   constructor(engine: BuildEngine) {
     this.engine = engine
@@ -20,8 +24,49 @@ export class RenderSystem {
     this.activePlate = idx
     for (const [id, mesh] of this.meshMap) {
       const obj = this.objectMap.get(id)
-      mesh.visible = (obj?.plate ?? 0) === idx
+      mesh.visible = this.shouldBeVisible(obj)
     }
+    if (this.csgPreviewMesh) {
+      // Preview always visible regardless of plate for now (multi-plate CSG TBD).
+      this.csgPreviewMesh.visible = true
+    }
+  }
+
+  /** Live CSG preview from CSGSystem: replaces per-positive rendering when set. */
+  setCsgPreview(mesh: THREE.Mesh | null): void {
+    // Remove old preview
+    if (this.csgPreviewMesh) {
+      this.engine.scene.remove(this.csgPreviewMesh)
+      this.csgPreviewMesh.geometry.dispose()
+      if (this.csgPreviewMesh.material instanceof THREE.Material) {
+        this.csgPreviewMesh.material.dispose()
+      }
+      this.csgPreviewMesh = null
+    }
+    if (mesh) {
+      this.csgPreviewMesh = mesh
+      this.engine.scene.add(mesh)
+    }
+    // Re-apply visibility rules
+    for (const [id, m] of this.meshMap) {
+      const obj = this.objectMap.get(id)
+      m.visible = this.shouldBeVisible(obj)
+    }
+  }
+
+  private isCsgActive(): boolean {
+    return this.csgPreviewMesh !== null
+  }
+
+  private shouldBeVisible(obj: PlacedObject | undefined): boolean {
+    if (!obj) return false
+    if ((obj.plate ?? 0) !== this.activePlate) return false
+    // When CSG preview is showing, hide printable positives — the preview
+    // represents them. Negatives stay visible (wireframe overlay) so the user
+    // can locate them. Non-printable utility blocks (torches/lanterns) also
+    // stay visible.
+    if (this.isCsgActive() && obj.isPrintable && !obj.isNegative) return false
+    return true
   }
 
   sync(objects: PlacedObject[]): void {
@@ -68,7 +113,7 @@ export class RenderSystem {
       mesh.rotation.z = (obj.rotation.z * Math.PI) / 180
 
       mesh.userData['objectId'] = obj.id
-      mesh.visible = (obj.plate ?? 0) === this.activePlate
+      mesh.visible = this.shouldBeVisible(obj)
       scene.add(mesh)
       this.meshMap.set(obj.id, mesh)
     }

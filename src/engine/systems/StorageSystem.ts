@@ -208,7 +208,9 @@ export class StorageSystem {
       // Restore objects
       for (const obj of save.objects) {
         this.engine.objects.push(obj)
-        this.engine.occupancy.register(obj.id, obj.position, obj.size)
+        if (!obj.isNegative) {
+          this.engine.occupancy.register(obj.id, obj.position, obj.size)
+        }
       }
       this.engine.sync()
 
@@ -234,6 +236,10 @@ export class StorageSystem {
       const desiredPlateCount = Math.max(1, maxPlate + 1)
       this.engine.store.setState({ plateCount: desiredPlateCount, activePlate: 0 })
       this.engine.render.setActivePlate(0)
+      // If the restored scene has negatives, kick off the live CSG preview
+      // so they actually carve the visible solids. Without this, restored
+      // scenes show negatives as wireframe overlay but with no carved hole.
+      this.engine.csg.scheduleRebuild(0)
       console.info(`[MineStudio] Restored ${save.objects.length} objects across ${desiredPlateCount} plate(s).`)
     } catch (err) {
       console.error('[MineStudio] restoreFromSave failed:', err)

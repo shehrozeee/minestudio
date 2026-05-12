@@ -139,18 +139,19 @@ export function ControlsPage() {
             <Section title="Movement — Xbox Controller">
               <Row keys="L stick" label="Walk / strafe" />
               <Row keys="R stick" label="Look" />
-              <Row keys="A" label="Start game (first press)" />
+              <Row keys="A" label="Start game (first press) · hold to fly UP (in fly mode)" />
               <Row keys="A A" label="Toggle fly mode" />
+              <Row keys="B" label="Hold to fly DOWN (in fly mode) · close any menu" />
               <Row keys="B B" label="Toggle fly mode (alt)" />
-              <Row keys="RB / LB (fly)" label="Rise / descend" />
+              <Row keys="RB / LB (fly)" label="Rise / descend (alias for A / B)" />
             </Section>
 
             <Section title="Building — Controller">
               <Row keys="RT" label="Place block" />
-              <Row keys="LT" label="Erase block" />
-              <Row keys="Y" label="Rotate yaw (Y axis)" />
-              <Row keys="Back + Y" label="Rotate pitch (X axis)" />
-              <Row keys="Start + Y" label="Rotate roll (Z axis)" />
+              <Row keys="LT" label="Break / erase block" />
+              <Row keys="D-pad ↑ tap" label="Rotate yaw (Y axis)" />
+              <Row keys="Back + D-pad ↑" label="Rotate pitch (X axis)" />
+              <Row keys="Start + D-pad ↑" label="Rotate roll (Z axis)" />
               <Row keys="X (hold)" label="Tool ring — left stick aims, release to commit" />
               <Row keys="D-pad ↓" label="Cycle block size" />
               <Row keys="LB / RB (walk)" label="Hotbar prev / next" />
@@ -158,16 +159,18 @@ export function ControlsPage() {
             </Section>
 
             <Section title="Inventory / Plates / Menu — Controller">
-              <Row keys="D-pad ↑ tap" label="Open inventory" />
+              <Row keys="Y" label="Open / close inventory" />
               <Row keys="D-pad ↑ hold" label="Category ring" />
               <Row keys="D-pad in inv" label="Move cursor — A picks block" />
               <Row keys="LB / RB in inv" label="Switch tab" />
+              <Row keys="Back + D-pad ←" label="Previous plate" />
+              <Row keys="Back + D-pad →" label="Next plate (auto-adds new)" />
               <Row keys="Start" label="Pause menu (with Export button)" />
               <Row keys="B" label="Close any open menu" />
             </Section>
 
             <Section title="Undo / Export / Misc — Controller">
-              <Row keys="Back" label="Undo" />
+              <Row keys="Back (release)" label="Undo (deferred — won't fire if you chord with Back)" />
               <Row keys="Back + A" label="Redo" />
               <Row keys="Back + RT" label="Open export dialog" />
               <Row keys="Back + LB" label="Toggle annotations" />

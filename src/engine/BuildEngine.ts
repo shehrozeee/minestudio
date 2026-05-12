@@ -82,6 +82,8 @@ export class BuildEngine {
     this.render.init()
     this.storage.init()
     this.exporter.init()
+    this.csg.init()
+    this.csg.onPreview((mesh) => this.render.setCsgPreview(mesh))
 
     this.world.setTimeUpdateCallback((t) => {
       import('../ui/store').then(({ useStore }) => {
@@ -94,6 +96,9 @@ export class BuildEngine {
       this.world.syncLamps(this.objects)
       // Mirror engine.objects → store.objects so React components see updates
       this.store.setState({ objects: this.objects.map(o => ({ ...o })) })
+      // Trigger debounced CSG live-preview rebuild whenever scene changes.
+      // CSGSystem decides whether work is actually needed (no negatives → emits null).
+      this.csg.scheduleRebuild(250)
       import('../ui/store').then(({ useStore }) => {
         useStore.getState().setUndoState({ canUndo, canRedo })
         useStore.getState().setObjectCount(

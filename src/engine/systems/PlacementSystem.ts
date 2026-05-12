@@ -45,7 +45,11 @@ export class PlacementSystem {
         obj instanceof THREE.Mesh &&
         obj !== this.ghostMesh &&
         obj.visible &&
-        (obj.userData['isPlate'] === true || typeof obj.userData['objectId'] === 'number')
+        (
+          obj.userData['isPlate'] === true ||
+          typeof obj.userData['objectId'] === 'number' ||
+          obj.userData['isCsgPreview'] === true
+        )
       ) {
         targets.push(obj)
       }
@@ -99,7 +103,10 @@ export class PlacementSystem {
     if (!defId) return
     const def = getBlockDef(defId)
     if (!def) return
-    if (this.engine.occupancy.isOccupied(this.ghostPos, state.selectedSize)) return
+    // Negative blocks ARE allowed to overlap positives — that's how material is carved.
+    // Only block placement if there's already a solid (non-negative) there AND we're not
+    // placing a negative.
+    if (!state.negativeMode && this.engine.occupancy.isOccupied(this.ghostPos, state.selectedSize)) return
 
     this.engine.commandBus.execute(
       new PlaceCommand(this.engine, {

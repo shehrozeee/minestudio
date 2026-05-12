@@ -10,8 +10,8 @@ import {
 } from '../../src/engine/grid'
 
 describe('GRID_BASE', () => {
-  it('is 2mm', () => {
-    expect(GRID_BASE).toBe(2)
+  it('is 4mm', () => {
+    expect(GRID_BASE).toBe(4)
   })
 })
 
@@ -29,26 +29,31 @@ describe('toWorld', () => {
     expect(v.z).toBe(0)
   })
 
-  it('converts gx=3 to x=6mm', () => {
+  it('converts gx=3 to x=12mm (GRID_BASE=4)', () => {
     const v = toWorld({ gx: 3, gy: 0, gz: 0 })
-    expect(v.x).toBe(6)
+    expect(v.x).toBe(12)
   })
 
-  it('converts gy=1 to y=2mm', () => {
+  it('converts gy=1 to y=4mm (GRID_BASE=4)', () => {
     const v = toWorld({ gx: 0, gy: 1, gz: 0 })
-    expect(v.y).toBe(2)
+    expect(v.y).toBe(4)
   })
 })
 
 describe('snapToGrid', () => {
-  it('snaps 3.1 to nearest grid cell gx=2', () => {
-    const pos = snapToGrid({ x: 3.1, y: 0, z: 0 })
+  it('snaps 5 mm to nearest grid cell gx=1 (GRID_BASE=4)', () => {
+    const pos = snapToGrid({ x: 5, y: 0, z: 0 })
+    expect(pos.gx).toBe(1)
+  })
+
+  it('snaps 7 mm to gx=2', () => {
+    const pos = snapToGrid({ x: 7, y: 0, z: 0 })
     expect(pos.gx).toBe(2)
   })
 
   it('snaps negative coordinates correctly', () => {
-    const pos = snapToGrid({ x: -5, y: 0, z: 0 })
-    expect(pos.gx).toBe(-2)
+    const pos = snapToGrid({ x: -12, y: 0, z: 0 })
+    expect(pos.gx).toBe(-3)
   })
 })
 

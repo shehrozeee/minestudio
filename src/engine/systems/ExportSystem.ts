@@ -77,8 +77,15 @@ interface ExtractedMesh {
   trisXML: string    // XML lines for <triangle .../> tags
 }
 
-/** Extract one merged mesh's XML from a list of objects (their geometry merged). */
-function buildMeshXML(objects: PlacedObject[]): ExtractedMesh {
+/**
+ * Extract one merged mesh's XML from a list of objects (their geometry merged).
+ * `geoOverrides` lets callers supply a pre-carved geometry per object id (used
+ * to apply negative-block CSG subtraction before triangulating).
+ */
+function buildMeshXML(
+  objects: PlacedObject[],
+  geoOverrides?: Map<number, THREE.BufferGeometry>,
+): ExtractedMesh {
   let vertsXML = ''
   let trisXML = ''
   let vOff = 0
@@ -87,7 +94,7 @@ function buildMeshXML(objects: PlacedObject[]): ExtractedMesh {
     const def = getBlockDef(obj.defId)
     if (!def) continue
     const unitSize = GRID_BASE * SIZE_IN_UNITS[obj.size]
-    const geo = def.makeGeometry(unitSize)
+    const geo = geoOverrides?.get(obj.id) ?? def.makeGeometry(unitSize)
 
     // Apply position + rotation
     const tmp = new THREE.Mesh(geo)
@@ -142,7 +149,10 @@ interface BuildArtifacts {
   projectSettingsJson: string
 }
 
-function build3MFXml(objectsAllPlates: PlacedObject[]): BuildArtifacts {
+function build3MFXml(
+  objectsAllPlates: PlacedObject[],
+  geoOverrides?: Map<number, THREE.BufferGeometry>,
+): BuildArtifacts {
   const byPlate = groupByPlateAndBody(objectsAllPlates)
   const plateNums = [...byPlate.keys()].sort((a, b) => a - b)
 
@@ -179,7 +189,7 @@ function build3MFXml(objectsAllPlates: PlacedObject[]): BuildArtifacts {
       const colorClusters = clusterByColor(bodyObjs)
       for (const cluster of colorClusters) {
         const color = (cluster[0].color || '#000000').toUpperCase()
-        const mesh = buildMeshXML(cluster)
+        const mesh = buildMeshXML(cluster, geoOverrides)
         if (!mesh.vertsXML || !mesh.trisXML) continue
         plateBucket.meshes.push({ color, mesh, bodyName })
 
@@ -296,11 +306,14 @@ export class ExportSystem {
   }
 
   // ── STL helpers ────────────────────────────────────────────────────────
-  private buildMeshForObject(obj: PlacedObject): THREE.Mesh | null {
+  private buildMeshForObject(
+    obj: PlacedObject,
+    geoOverride?: THREE.BufferGeometry,
+  ): THREE.Mesh | null {
     const def = getBlockDef(obj.defId)
     if (!def) return null
     const unitSize = GRID_BASE * SIZE_IN_UNITS[obj.size]
-    const geo = def.makeGeometry(unitSize)
+    const geo = geoOverride ?? def.makeGeometry(unitSize)
     const mesh = new THREE.Mesh(geo)
     const wp = toWorld(obj.position)
     const half = unitSize / 2
@@ -311,13 +324,39 @@ export class ExportSystem {
     return mesh
   }
 
-  private sceneForObjects(objects: PlacedObject[]): THREE.Scene {
+  private sceneForObjects(
+    objects: PlacedObject[],
+    geoOverrides?: Map<number, THREE.BufferGeometry>,
+  ): THREE.Scene {
     const scene = new THREE.Scene()
     for (const obj of objects) {
-      const mesh = this.buildMeshForObject(obj)
+      const mesh = this.buildMeshForObject(obj, geoOverrides?.get(obj.id))
       if (mesh) scene.add(mesh)
     }
     return scene
+  }
+
+  /**
+   * Compute per-positive carved geometries by subtracting overlapping negatives.
+   * Returns an empty map if no negatives exist (the caller falls back to
+   * default geometry).
+   */
+  private async buildCarveOverrides(
+    positives: PlacedObject[],
+    allObjects: PlacedObject[],
+  ): Promise<Map<number, THREE.BufferGeometry>> {
+    const negatives = allObjects.filter(o => o.isNegative)
+    const out = new Map<number, THREE.BufferGeometry>()
+    if (negatives.length === 0) return out
+    for (const pos of positives) {
+      try {
+        const carved = await this.engine.csg.carveOne(pos, negatives)
+        if (carved) out.set(pos.id, carved)
+      } catch (err) {
+        console.warn('[MineStudio] carveOne failed for object', pos.id, err)
+      }
+    }
+    return out
   }
 
   // ── 3MF export ────────────────────────────────────────────────────────
@@ -329,7 +368,10 @@ export class ExportSystem {
       return
     }
 
-    const built = build3MFXml(printable)
+    // Apply CSG: subtract overlapping negatives from each positive before
+    // writing geometry. Empty map = no negatives, fast path.
+    const carveOverrides = await this.buildCarveOverrides(printable, objects)
+    const built = build3MFXml(printable, carveOverrides)
 
     const zip = new JSZip()
     zip.file('[Content_Types].xml', CONTENT_TYPES_XML)
@@ -383,34 +425,47 @@ export class ExportSystem {
     }
 
     if (format === '3mf-all' || format === '3mf-selected') {
+      // export3MF handles its own carving (path may be called directly elsewhere).
       await this.export3MF(printable, bodies)
     } else if (format === 'stl-all') {
-      this.exportSTL(printable)
+      // Carve negatives into positives before STL writes them out.
+      const carve = await this.buildCarveOverrides(printable, objects)
+      this.exportSTL(printable, carve)
     } else {
-      await this.exportSTLZip(printable)
+      const carve = await this.buildCarveOverrides(printable, objects)
+      await this.exportSTLZip(printable, carve)
     }
   }
 
   // ── STL exports ──────────────────────────────────────────────────────
 
-  exportSTL(printableObjects?: PlacedObject[]): void {
+  exportSTL(
+    printableObjects?: PlacedObject[],
+    carveOverrides?: Map<number, THREE.BufferGeometry>,
+  ): void {
     const objects = printableObjects ?? this.engine.objects.filter(o => o.isPrintable && !o.isNegative)
     if (objects.length === 0) {
       alert('Nothing to export — place some blocks first.')
       return
     }
-    const scene = this.sceneForObjects(objects)
+    const scene = this.sceneForObjects(objects, carveOverrides)
     const stl = this.stlExporter.parse(scene, { binary: false })
     this.downloadText(stl as string, `minestudio_export_${Date.now()}.stl`, 'text/plain')
   }
 
-  async exportSTLZip(printableObjects?: PlacedObject[]): Promise<void> {
+  async exportSTLZip(
+    printableObjects?: PlacedObject[],
+    carveOverrides?: Map<number, THREE.BufferGeometry>,
+  ): Promise<void> {
     const objects = printableObjects ?? this.engine.objects.filter(o => o.isPrintable && !o.isNegative)
     const byPlate = groupByPlateAndBody(objects)
     if (byPlate.size === 0) {
       alert('Nothing to export — place some blocks first.')
       return
     }
+    // If caller didn't pre-bake the carve, do it now so negatives still apply
+    // when this method is called directly (e.g. the Ctrl+Shift+E shortcut).
+    const overrides = carveOverrides ?? await this.buildCarveOverrides(objects, this.engine.objects)
 
     const zip = new JSZip()
     const plateNums = [...byPlate.keys()].sort((a, b) => a - b)
@@ -427,7 +482,7 @@ export class ExportSystem {
         let suffix = 1
         while (usedNames.has(`${baseKey}/${fileName}`)) fileName = `${rawName}_${suffix++}`
         usedNames.add(`${baseKey}/${fileName}`)
-        const scene = this.sceneForObjects(objs)
+        const scene = this.sceneForObjects(objs, overrides)
         const stl = this.stlExporter.parse(scene, { binary: false }) as string
         folder.file(`${fileName}.stl`, stl)
       }

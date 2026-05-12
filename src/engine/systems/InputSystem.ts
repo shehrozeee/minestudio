@@ -10,6 +10,11 @@ const FLY_VERTICAL_SPEED = 50   // vertical fly slower than horizontal for fine 
 const GAMEPAD_DEAD = 0.15
 const GAMEPAD_LOOK_SPEED = 1.4   // rad/sec at full stick deflection
 const GAMEPAD_DOUBLE_TAP_MS = 400
+// Trigger hysteresis — Xbox triggers oscillate around any single threshold mid-pull,
+// firing multiple justPressed events per actual squeeze ("controller keeps placing").
+// Enter pressed at 0.6, exit only below 0.25.
+const TRIGGER_PRESS_HI = 0.6
+const TRIGGER_RELEASE_LO = 0.25
 
 function dz(v: number): number {
   return Math.abs(v) < GAMEPAD_DEAD ? 0 : v
@@ -55,10 +60,17 @@ export class InputSystem {
   private xRingOpened = false
   private dUpHoldStart = 0
   private dUpRingOpened = false
+  private dUpRotateAxis: 'x' | 'y' | 'z' = 'y'
   private aLastTap = 0
   private aTapCount = 0
   private bLastTap = 0
   private bTapCount = 0
+  // Trigger hysteresis state — see TRIGGER_PRESS_HI/LO constants
+  private _rtPressed = false
+  private _ltPressed = false
+  // Back is a chord modifier (plate cycle, redo, export, etc). Defer the
+  // bare-undo action to Back-release so chords don't fire an unwanted undo first.
+  private _backChorded = false
 
   constructor(engine: BuildEngine) {
     this.engine = engine
@@ -280,8 +292,15 @@ export class InputSystem {
     const ry = dz(pad.axes[3] ?? 0)
 
     const btn = (i: number) => !!(pad!.buttons[i]?.pressed)
-    const trig = (i: number) => (pad!.buttons[i]?.value ?? 0) > 0.5
-    const rt = trig(7), lt = trig(6)
+    // Trigger hysteresis: use HI to enter pressed, LO to release.
+    // Prevents value-oscillation from firing multiple justPressed events per squeeze.
+    const rtVal = pad!.buttons[7]?.value ?? 0
+    const ltVal = pad!.buttons[6]?.value ?? 0
+    if (!this._rtPressed && rtVal > TRIGGER_PRESS_HI) this._rtPressed = true
+    else if (this._rtPressed && rtVal < TRIGGER_RELEASE_LO) this._rtPressed = false
+    if (!this._ltPressed && ltVal > TRIGGER_PRESS_HI) this._ltPressed = true
+    else if (this._ltPressed && ltVal < TRIGGER_RELEASE_LO) this._ltPressed = false
+    const rt = this._rtPressed, lt = this._ltPressed
     const a = btn(0), b = btn(1), x = btn(2), y = btn(3)
     const lb = btn(4), rb = btn(5)
     const back = btn(8), start = btn(9)
@@ -327,6 +346,12 @@ export class InputSystem {
     // ── Inventory navigation (when open) ──
     const stateNow = this.store?.useStore.getState()
     if (stateNow?.inventoryOpen) {
+      // Y toggles inventory closed (mirrors Y open from main handler).
+      if (justPressed(y, prev.y)) {
+        stateNow.setInventoryOpen(false)
+        writePrev()
+        return
+      }
       const fire = (key: string) => document.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }))
       if (justPressed(dpadLeft, prev.dpadLeft))  fire('ArrowLeft')
       if (justPressed(dpadRight, prev.dpadRight)) fire('ArrowRight')
@@ -394,11 +419,20 @@ export class InputSystem {
       return
     }
 
-    // ── Movement (left stick) ──
+    // ── Movement (left stick) — direct camera position update.
+    // Don't use controls.moveRight/Forward: they depend on PointerLockControls internals
+    // that have changed across three.js versions (r160 renamed .object → .camera).
     if (lx !== 0 || ly !== 0) {
       const speed = this.flyMode ? FLY_SPEED : WALK_SPEED
-      if (lx !== 0) this.controls.moveRight(lx * speed * dt)
-      if (ly !== 0) this.controls.moveForward(-ly * speed * dt)
+      const camera = this.engine.camera
+      const forward = new THREE.Vector3()
+      camera.getWorldDirection(forward)
+      forward.y = 0
+      if (forward.lengthSq() > 0) forward.normalize()
+      const right = new THREE.Vector3()
+      right.crossVectors(forward, new THREE.Vector3(0, 1, 0)).normalize()
+      if (ly !== 0) camera.position.addScaledVector(forward, -ly * speed * dt)
+      if (lx !== 0) camera.position.addScaledVector(right, lx * speed * dt)
     }
 
     // ── Look (right stick) — direct quaternion update ──
@@ -413,11 +447,12 @@ export class InputSystem {
       obj.quaternion.setFromEuler(this._cameraEuler)
     }
 
-    // ── Fly vertical (bumpers held while flying) ──
+    // ── Fly vertical (A/B or bumpers held while flying) ──
+    // MC-creative-style: A=up, B=down. Bumpers kept as aliases.
     if (this.flyMode) {
       const obj = this.engine.camera
-      if (rb) obj.position.y += FLY_VERTICAL_SPEED * dt
-      if (lb) obj.position.y -= FLY_VERTICAL_SPEED * dt
+      if (a || rb) obj.position.y += FLY_VERTICAL_SPEED * dt
+      if (b || lb) obj.position.y -= FLY_VERTICAL_SPEED * dt
     }
 
     // Clamp camera within build volume
@@ -447,12 +482,27 @@ export class InputSystem {
 
     const backACombo = back && justPressed(a, prev.a)
     const backLbCombo = back && justPressed(lb, prev.lb)
-    if (backACombo) this.engine.commandBus.redo()
+    if (backACombo) { this.engine.commandBus.redo(); this._backChorded = true }
     if (backLbCombo) {
+      this._backChorded = true
       this.getStore().then(({ useStore }) => useStore.getState().setAnnotationsVisible(!useStore.getState().annotationsVisible))
     }
-    // Back alone = undo. Skip if Back is being chorded with another button.
-    if (justPressed(back, prev.back) && !a && !y && !lb && !rt && !lt) this.engine.commandBus.undo()
+    // Mark Back chorded if user pressed any chord button while Back is held.
+    // (BACK+RT/LT export/cancel-place is handled near the trigger handlers above
+    //  but also gate them here for plate/rotate chords.)
+    if (back && (justPressed(rt, prev.rt) || justPressed(lt, prev.lt) || justPressed(y, prev.y) ||
+                 justPressed(dpadLeft, prev.dpadLeft) || justPressed(dpadRight, prev.dpadRight) ||
+                 justPressed(dpadUp, prev.dpadUp) || justPressed(dpadDown, prev.dpadDown) ||
+                 justPressed(x, prev.x))) {
+      this._backChorded = true
+    }
+    if (justPressed(back, prev.back)) {
+      this._backChorded = false
+    }
+    // Bare undo fires on Back RELEASE if nothing was chorded with it.
+    if (justReleased(back, prev.back) && !this._backChorded) {
+      this.engine.commandBus.undo()
+    }
 
     // A double-tap = fly toggle (skip if Back+A combo)
     if (!backACombo && justPressed(a, prev.a)) {
@@ -481,10 +531,10 @@ export class InputSystem {
       this.xRingOpened = false
     }
 
-    // Y = rotate placement preview (Y axis). Back+Y = X axis, Start+Y = Z axis.
+    // Y = open/close inventory (MC Bedrock convention).
+    // Rotate moved to DPAD ↑ tap (with Back/Start for X/Z axes).
     if (justPressed(y, prev.y)) {
-      const axis: 'x' | 'y' | 'z' = back ? 'x' : start ? 'z' : 'y'
-      this.getStore().then(({ useStore }) => useStore.getState().cyclePlacementRotation(axis))
+      this.getStore().then(({ useStore }) => useStore.getState().setInventoryOpen(!useStore.getState().inventoryOpen))
     }
 
     // LB: in fly mode = vertical descent ONLY (handled in fly block above).
@@ -514,34 +564,61 @@ export class InputSystem {
       })
     }
 
-    // D-pad left/right: paint mode = color cycle (works during fly), else hotbar
+    // D-pad left/right:
+    //   BACK + DPAD ← / → = plate prev / next  (highest priority)
+    //   paint mode        = color cycle (works during fly)
+    //   default           = hotbar prev / next
     if (justPressed(dpadLeft, prev.dpadLeft)) {
-      this.getStore().then(({ useStore }) => {
-        const state = useStore.getState()
-        if (state.selectedTool === 'paint') {
-          const idx = getColorIndex(state.selectedColor)
-          state.setColor(COLORS[(idx - 1 + COLORS.length) % COLORS.length].hex)
-        } else {
-          state.setHotbarSlot((state.selectedSlot - 1 + state.hotbarSlots.length) % state.hotbarSlots.length)
-        }
-      })
+      if (back) {
+        this.getStore().then(({ useStore }) => {
+          const s = useStore.getState()
+          s.setActivePlate(Math.max(0, s.activePlate - 1))
+        })
+      } else {
+        this.getStore().then(({ useStore }) => {
+          const state = useStore.getState()
+          if (state.selectedTool === 'paint') {
+            const idx = getColorIndex(state.selectedColor)
+            state.setColor(COLORS[(idx - 1 + COLORS.length) % COLORS.length].hex)
+          } else {
+            state.setHotbarSlot((state.selectedSlot - 1 + state.hotbarSlots.length) % state.hotbarSlots.length)
+          }
+        })
+      }
     }
     if (justPressed(dpadRight, prev.dpadRight)) {
-      this.getStore().then(({ useStore }) => {
-        const state = useStore.getState()
-        if (state.selectedTool === 'paint') {
-          const idx = getColorIndex(state.selectedColor)
-          state.setColor(COLORS[(idx + 1) % COLORS.length].hex)
-        } else {
-          state.setHotbarSlot((state.selectedSlot + 1) % state.hotbarSlots.length)
-        }
-      })
+      if (back) {
+        this.getStore().then(({ useStore }) => {
+          const s = useStore.getState()
+          // Auto-extend plateCount up to max if cycling past current count
+          if (s.activePlate + 1 < s.plateCount) {
+            s.setActivePlate(s.activePlate + 1)
+          } else if (s.plateCount < 9) {
+            s.addPlate() // addPlate jumps activePlate to the new plate
+          }
+        })
+      } else {
+        this.getStore().then(({ useStore }) => {
+          const state = useStore.getState()
+          if (state.selectedTool === 'paint') {
+            const idx = getColorIndex(state.selectedColor)
+            state.setColor(COLORS[(idx + 1) % COLORS.length].hex)
+          } else {
+            state.setHotbarSlot((state.selectedSlot + 1) % state.hotbarSlots.length)
+          }
+        })
+      }
     }
 
-    // D-pad Up: hold>400ms = category ring, tap = inventory
+    // D-pad Up: hold>400ms = category ring, tap = rotate placement.
+    // Inventory moved to Y button (MC Bedrock convention).
+    // Tap rotates yaw by default; Back+DPAD↑ = pitch (X), Start+DPAD↑ = roll (Z).
     if (justPressed(dpadUp, prev.dpadUp)) {
       this.dUpHoldStart = now
       this.dUpRingOpened = false
+      // Latch the rotation axis at the press moment so a chord-modifier release
+      // during a long press doesn't change which axis we rotate.
+      this.dUpRotateAxis = back ? 'x' : start ? 'z' : 'y'
     }
     if (dpadUp && this.dUpHoldStart > 0 && !this.dUpRingOpened && (now - this.dUpHoldStart) > 400) {
       this.dUpRingOpened = true
@@ -549,7 +626,8 @@ export class InputSystem {
     }
     if (justReleased(dpadUp, prev.dpadUp)) {
       if (!this.dUpRingOpened) {
-        this.getStore().then(({ useStore }) => useStore.getState().setInventoryOpen(!useStore.getState().inventoryOpen))
+        const axis = this.dUpRotateAxis
+        this.getStore().then(({ useStore }) => useStore.getState().cyclePlacementRotation(axis))
       } else {
         this.getStore().then(({ useStore }) => useStore.getState().setRingOpen(false))
       }

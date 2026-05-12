@@ -11,13 +11,17 @@ export class DeleteCommand implements Command {
   execute(): void {
     const idx = this.engine.objects.indexOf(this.obj)
     if (idx !== -1) this.engine.objects.splice(idx, 1)
-    this.engine.occupancy.unregister(this.obj.id, this.obj.position, this.obj.size)
+    if (!this.obj.isNegative) {
+      this.engine.occupancy.unregister(this.obj.id, this.obj.position, this.obj.size)
+    }
     this.engine.render.sync(this.engine.objects)
   }
 
   undo(): void {
     this.engine.objects.push(this.obj)
-    this.engine.occupancy.register(this.obj.id, this.obj.position, this.obj.size)
+    if (!this.obj.isNegative) {
+      this.engine.occupancy.register(this.obj.id, this.obj.position, this.obj.size)
+    }
     this.engine.render.sync(this.engine.objects)
   }
 }
