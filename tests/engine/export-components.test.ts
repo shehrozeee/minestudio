@@ -2,7 +2,14 @@ import { describe, it, expect } from 'vitest'
 import { aabbConnected, connectedComponents, buildPalette } from '../../src/engine/systems/ExportSystem'
 import type { PlacedObject } from '../../src/engine/types'
 
-function obj(id: number, gx: number, gy: number, gz: number, color: string): PlacedObject {
+function obj(
+  id: number,
+  gx: number,
+  gy: number,
+  gz: number,
+  color: string,
+  opts: { bodyName?: string; plate?: number } = {},
+): PlacedObject {
   return {
     id,
     defId: 'cube',
@@ -14,7 +21,8 @@ function obj(id: number, gx: number, gy: number, gz: number, color: string): Pla
     isPrintable: true,
     isSupport: false,
     storageKind: 'grid',
-    plate: 0,
+    plate: opts.plate ?? 0,
+    bodyName: opts.bodyName,
   }
 }
 
@@ -105,5 +113,45 @@ describe('buildPalette — canonical color ordering', () => {
     const blocks = [obj(1, 0, 0, 0, '#e03030')]  // lowercase Red
     const { palette } = buildPalette(blocks)
     expect(palette[0]).toBe('#E03030')
+  })
+
+  // Regression — old build emitted a duplicate red entry when the same color
+  // was used in multiple bodies / plates. Confirms one palette slot per color
+  // no matter how the blocks are grouped downstream.
+  it('same color across different bodies → ONE palette entry', () => {
+    const blocks = [
+      obj(1, 0, 0, 0, '#E03030', { bodyName: 'wall_a' }),
+      obj(2, 5, 0, 0, '#E03030', { bodyName: 'wall_b' }),
+      obj(3, 10, 0, 0, '#E03030', { bodyName: 'wall_c' }),
+    ]
+    const { palette, colorIndex } = buildPalette(blocks)
+    expect(palette).toEqual(['#E03030'])
+    expect(colorIndex.get('#E03030')).toBe(0)
+  })
+
+  it('same color across different plates → ONE palette entry', () => {
+    const blocks = [
+      obj(1, 0, 0, 0, '#E03030', { plate: 0 }),
+      obj(2, 5, 0, 0, '#E03030', { plate: 1 }),
+      obj(3, 10, 0, 0, '#E03030', { plate: 2 }),
+    ]
+    const { palette } = buildPalette(blocks)
+    expect(palette).toHaveLength(1)
+    expect(palette[0]).toBe('#E03030')
+  })
+
+  it('mixed: 2 colors × 3 bodies × 2 plates → exactly 2 palette entries', () => {
+    const colors = ['#E03030', '#2060D0']
+    const bodies = ['a', 'b', 'c']
+    const plates = [0, 1]
+    let id = 1
+    const blocks: PlacedObject[] = []
+    for (const c of colors) for (const b of bodies) for (const p of plates) {
+      blocks.push(obj(id++, id, 0, 0, c, { bodyName: b, plate: p }))
+    }
+    const { palette } = buildPalette(blocks)
+    expect(palette).toHaveLength(2)
+    // Sorted by registry: Red (3) < Blue (10)
+    expect(palette).toEqual(['#E03030', '#2060D0'])
   })
 })
